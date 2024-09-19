@@ -92,37 +92,11 @@ int main(void)
 
   /* Infinite loop */
   /* USER CODE BEGIN WHILE */
-  // Global Variables
-  int flag=0;
-  int timer=0;
-  // CheckTimer: checks if timer timed out at t then switch flag to f, else increase timer by 1
-  void CheckTimer(int t,int f){
-	if(timer>t){
-		flag=f;
-		timer=0;
-		HAL_GPIO_WritePin ( DEBUG_LED_GPIO_Port , DEBUG_LED_Pin , flag);
-	}
-	timer++;
-  }
-
-  HAL_GPIO_WritePin ( DEBUG_LED_GPIO_Port , DEBUG_LED_Pin , flag);
-
   while (1)
   {
-	  switch (flag) {
-		case 0:
-			//TODO
-			CheckTimer(4,1); 	// wait 4 seconds then switch LED on
-			break;
-		case 1:
-			//TODO
-			CheckTimer(2,0);	// wait 2 seconds then switch LED off
-			break;
-		default:
-			//TODO
-			flag=0;
-			break;
-	}
+	  HAL_GPIO_WritePin ( DEBUG_LED_GPIO_Port , DEBUG_LED_Pin , 1);
+	  HAL_Delay (1000) ;
+	  HAL_GPIO_WritePin ( DEBUG_LED_GPIO_Port , DEBUG_LED_Pin , 0);
 	  HAL_Delay (1000) ;
     /* USER CODE END WHILE */
 
