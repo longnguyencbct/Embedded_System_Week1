@@ -103,7 +103,7 @@ int main(void)
   // variable declaration
   int wait_buffer[3]; //red, green, yellow wait
   int curr_wait;
-  enum STATE currState;
+  STATE currState;
 
   // LightOn: Traffic Light FSM
   void Traffic_FSM(){

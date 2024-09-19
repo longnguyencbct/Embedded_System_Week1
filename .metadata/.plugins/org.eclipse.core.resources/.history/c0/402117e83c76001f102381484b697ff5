@@ -92,66 +92,11 @@ int main(void)
 
   /* Infinite loop */
   /* USER CODE BEGIN WHILE */
-  // state enum declaration
-  enum STATE {
-	  RED,
-	  GREEN,
-	  YELLOW,
-	  WAIT
-  };
-
-  // variable declaration
-  int wait_buffer[3]; //red, green, yellow wait
-  int curr_wait;
-  enum STATE currState;
-
-  // LightOn: Traffic Light FSM
-  void Traffic_FSM(){
-	  switch (currState) {
-		case RED:
-			if(curr_wait<0){
-				curr_wait=wait_buffer[1];
-				currState=GREEN;
-				HAL_GPIO_WritePin ( DEBUG_LED_GPIO_Port , DEBUG_LED_Pin , 0);	// red off
-				HAL_GPIO_WritePin ( OUTPUT_Y0_GPIO_Port , OUTPUT_Y0_Pin , 1);	// green on
-			}
-			break;
-		case GREEN:
-			if(curr_wait<0){
-				curr_wait=wait_buffer[2];
-				currState=YELLOW;
-				HAL_GPIO_WritePin ( OUTPUT_Y0_GPIO_Port , OUTPUT_Y0_Pin , 0);	// green off
-				HAL_GPIO_WritePin ( OUTPUT_Y1_GPIO_Port , OUTPUT_Y1_Pin , 1);	// yellow on
-			}
-			break;
-		case YELLOW:
-			if(curr_wait<0){
-				curr_wait=wait_buffer[0];
-				currState=RED;
-				HAL_GPIO_WritePin ( OUTPUT_Y1_GPIO_Port , OUTPUT_Y1_Pin , 0);	// yellow off
-				HAL_GPIO_WritePin ( DEBUG_LED_GPIO_Port , DEBUG_LED_Pin , 1);	// red on
-			}
-			break;
-		default:
-			curr_wait=wait_buffer[0];
-			currState=RED;
-			HAL_GPIO_WritePin ( DEBUG_LED_GPIO_Port , DEBUG_LED_Pin , 1);
-			HAL_GPIO_WritePin ( DEBUG_LED_GPIO_Port , DEBUG_LED_Pin , 0);
-			HAL_GPIO_WritePin ( DEBUG_LED_GPIO_Port , DEBUG_LED_Pin , 0);
-			break;
-	}
-	  curr_wait--;
-  }
-
-  curr_wait=wait_buffer[0];
-  currState=RED;
-  HAL_GPIO_WritePin ( DEBUG_LED_GPIO_Port , DEBUG_LED_Pin , 1);
-  HAL_GPIO_WritePin ( DEBUG_LED_GPIO_Port , DEBUG_LED_Pin , 0);
-  HAL_GPIO_WritePin ( DEBUG_LED_GPIO_Port , DEBUG_LED_Pin , 0);
-
   while (1)
   {
-	  Traffic_FSM();
+	  HAL_GPIO_WritePin ( DEBUG_LED_GPIO_Port , DEBUG_LED_Pin , 1);
+	  HAL_Delay (1000) ;
+	  HAL_GPIO_WritePin ( DEBUG_LED_GPIO_Port , DEBUG_LED_Pin , 0);
 	  HAL_Delay (1000) ;
     /* USER CODE END WHILE */
 
