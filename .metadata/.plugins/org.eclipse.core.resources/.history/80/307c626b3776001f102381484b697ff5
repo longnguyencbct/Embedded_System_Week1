@@ -94,10 +94,8 @@ int main(void)
   /* USER CODE BEGIN WHILE */
   while (1)
   {
-	  HAL_GPIO_WritePin ( DEBUG_LED_GPIO_Port , DEBUG_LED_Pin , 1);
-	  HAL_Delay (1000) ;
-	  HAL_GPIO_WritePin ( DEBUG_LED_GPIO_Port , DEBUG_LED_Pin , 0);
-	  HAL_Delay (1000) ;
+	  HAL_GPIO_TogglePin ( DEBUG_LED_GPIO_Port , DEBUG_LED_Pin );
+	  HAL_Delay (100);
     /* USER CODE END WHILE */
 
     /* USER CODE BEGIN 3 */
