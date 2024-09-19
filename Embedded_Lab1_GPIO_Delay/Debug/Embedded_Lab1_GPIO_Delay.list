@@ -386,16 +386,16 @@ int main(void)
  80004ca:	2110      	movs	r1, #16
  80004cc:	4808      	ldr	r0, [pc, #32]	@ (80004f0 <main+0x38>)
  80004ce:	f000 fca7 	bl	8000e20 <HAL_GPIO_WritePin>
-	  HAL_Delay (1000) ;
- 80004d2:	f44f 707a 	mov.w	r0, #1000	@ 0x3e8
+	  HAL_Delay (2000) ;
+ 80004d2:	f44f 60fa 	mov.w	r0, #2000	@ 0x7d0
  80004d6:	f000 f9fd 	bl	80008d4 <HAL_Delay>
 	  HAL_GPIO_WritePin ( DEBUG_LED_GPIO_Port , DEBUG_LED_Pin , 0);
  80004da:	2200      	movs	r2, #0
  80004dc:	2110      	movs	r1, #16
  80004de:	4804      	ldr	r0, [pc, #16]	@ (80004f0 <main+0x38>)
  80004e0:	f000 fc9e 	bl	8000e20 <HAL_GPIO_WritePin>
-	  HAL_Delay (1000) ;
- 80004e4:	f44f 707a 	mov.w	r0, #1000	@ 0x3e8
+	  HAL_Delay (4000) ;
+ 80004e4:	f44f 607a 	mov.w	r0, #4000	@ 0xfa0
  80004e8:	f000 f9f4 	bl	80008d4 <HAL_Delay>
 	  HAL_GPIO_WritePin ( DEBUG_LED_GPIO_Port , DEBUG_LED_Pin , 1);
  80004ec:	bf00      	nop
