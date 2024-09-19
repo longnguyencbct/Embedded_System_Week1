@@ -1,0 +1,4 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<session version="1.0">
+<refactoring comment="Rename resource &apos;Embedded_Lab1_GPIO_Delay/Core/Src/LED7_seg.h&apos; to &apos;LED7_seg.c&apos;" description="Rename resource &apos;LED7_seg.h&apos;" flags="7" id="org.eclipse.ltk.core.refactoring.rename.resource" input="Core/Src/LED7_seg.h" name="LED7_seg.c" stamp="1726741764854" updateReferences="true"/>
+</session>

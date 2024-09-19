@@ -1,3 +1,4 @@
+"./Core/Src/LED7_seg.o"
 "./Core/Src/main.o"
 "./Core/Src/software_timer.o"
 "./Core/Src/stm32f4xx_hal_msp.o"

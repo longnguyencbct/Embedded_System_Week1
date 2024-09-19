@@ -77,7 +77,14 @@ void Error_Handler(void);
 #define BTN_LOAD_GPIO_Port GPIOD
 
 /* USER CODE BEGIN Private defines */
+void SystemClock_Config(void);
+static void MX_GPIO_Init(void);
+static void MX_TIM2_Init(void);
+static void MX_SPI1_Init(void);
 
+extern SPI_HandleTypeDef hspi1;
+
+extern TIM_HandleTypeDef htim2;
 /* USER CODE END Private defines */
 
 #ifdef __cplusplus
