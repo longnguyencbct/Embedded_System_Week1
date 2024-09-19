@@ -101,7 +101,7 @@ int main(void)
   };
 
   // variable declaration
-  int wait_buffer[3]={5,3,1}; //red, green, yellow wait
+  int wait_buffer[3]={5,3,2}; //red, green, yellow wait
   int curr_wait;
   enum STATE currState;
 
@@ -109,7 +109,7 @@ int main(void)
   void Traffic_FSM(){
 	  switch (currState) {
 		case RED:
-			if(curr_wait<1){
+			if(curr_wait<0){
 				curr_wait=wait_buffer[1];
 				currState=GREEN;
 				HAL_GPIO_WritePin ( DEBUG_LED_GPIO_Port , DEBUG_LED_Pin , 0);	// red off
@@ -117,7 +117,7 @@ int main(void)
 			}
 			break;
 		case GREEN:
-			if(curr_wait<1){
+			if(curr_wait<0){
 				curr_wait=wait_buffer[2];
 				currState=YELLOW;
 				HAL_GPIO_WritePin ( OUTPUT_Y0_GPIO_Port , OUTPUT_Y0_Pin , 0);	// green off
@@ -125,7 +125,7 @@ int main(void)
 			}
 			break;
 		case YELLOW:
-			if(curr_wait<1){
+			if(curr_wait<0){
 				curr_wait=wait_buffer[0];
 				currState=RED;
 				HAL_GPIO_WritePin ( OUTPUT_Y1_GPIO_Port , OUTPUT_Y1_Pin , 0);	// yellow off

@@ -52,6 +52,9 @@ default.size.stdout \
 OBJDUMP_LIST += \
 Embedded_Lab1_GPIO_Delay.list \
 
+OBJCOPY_HEX += \
+Embedded_Lab1_GPIO_Delay.hex \
+
 
 # All Target
 all: main-build
@@ -75,12 +78,17 @@ Embedded_Lab1_GPIO_Delay.list: $(EXECUTABLES) makefile objects.list $(OPTIONAL_T
 	@echo 'Finished building: $@'
 	@echo ' '
 
+Embedded_Lab1_GPIO_Delay.hex: $(EXECUTABLES) makefile objects.list $(OPTIONAL_TOOL_DEPS)
+	arm-none-eabi-objcopy  -O ihex $(EXECUTABLES) "Embedded_Lab1_GPIO_Delay.hex"
+	@echo 'Finished building: $@'
+	@echo ' '
+
 # Other Targets
 clean:
-	-$(RM) Embedded_Lab1_GPIO_Delay.elf Embedded_Lab1_GPIO_Delay.list Embedded_Lab1_GPIO_Delay.map default.size.stdout
+	-$(RM) Embedded_Lab1_GPIO_Delay.elf Embedded_Lab1_GPIO_Delay.hex Embedded_Lab1_GPIO_Delay.list Embedded_Lab1_GPIO_Delay.map default.size.stdout
 	-@echo ' '
 
-secondary-outputs: $(SIZE_OUTPUT) $(OBJDUMP_LIST)
+secondary-outputs: $(SIZE_OUTPUT) $(OBJDUMP_LIST) $(OBJCOPY_HEX)
 
 fail-specified-linker-script-missing:
 	@echo 'Error: Cannot find the specified linker script. Check the linker settings in the build configuration.'
