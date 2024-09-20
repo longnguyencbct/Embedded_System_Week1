@@ -113,14 +113,14 @@ int main(void)
   uint8_t count_LED_Y0 = 0;
   uint8_t count_LED_Y1 = 0;
 
-  void test_LEDDebug(){	// toggle every second
+  void test_LEDDebug(){
 	  count_LED_debug = (count_LED_debug+1)%20;
 	  if( count_LED_debug == 0){
 		  HAL_GPIO_TogglePin(DEBUG_LED_GPIO_Port, DEBUG_LED_Pin);
 	  }
   }
 
-  void test_LEDY0(){	// Off for 2 seconds then On for 3 seconds
+  void test_LEDY0(){
 	  count_LED_Y0 = (count_LED_Y0 + 1)%100;
 	  if( count_LED_Y0 > 40) {
 		  HAL_GPIO_WritePin(OUTPUT_Y0_GPIO_Port, OUTPUT_Y0_Pin, 1);
@@ -129,7 +129,7 @@ int main(void)
 	  }
   }
 
-  void test_LEDY1(){	// Off for 0.5 seconds, On for 1.5 seconds
+  void test_LEDY1(){
 	  count_LED_Y1 = (count_LED_Y1 + 1)%40;
 	  if(count_LED_Y1 > 10) {
 		  HAL_GPIO_WritePin(OUTPUT_Y1_GPIO_Port, OUTPUT_Y1_Pin, 0);
