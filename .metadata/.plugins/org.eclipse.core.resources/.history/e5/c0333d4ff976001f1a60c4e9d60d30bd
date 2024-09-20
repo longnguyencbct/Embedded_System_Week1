@@ -111,14 +111,14 @@ int main(void)
   /* Infinite loop */
   /* USER CODE BEGIN WHILE */
   int led_scan_period=25; // 1Hz = 2500, 25Hz = 100, 100Hz = 25
-  uint8_t temp_shift;
+  uint_8 temp_shift;
 
   void shift_7seg(){
 	  temp_shift=led7seg[3];
-	  led7seg[3]=led7seg[2];
-	  led7seg[2]=led7seg[1];
 	  led7seg[1]=led7seg[0];
-	  led7seg[0]=temp_shift;
+	  led7seg[2]=led7seg[1];
+	  led7seg[3]=led7seg[2];
+	  led7seg[4]=temp_shift;
   }
 
   while (1)

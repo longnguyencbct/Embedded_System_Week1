@@ -18,6 +18,5 @@ void LED_On ( uint8_t index );
 void LED_Off ( uint8_t index );
 
 extern uint8_t arrayOfNum[10];
-extern uint8_t led7seg[4];
 
 #endif /* INC_LED7_SEG_H_ */

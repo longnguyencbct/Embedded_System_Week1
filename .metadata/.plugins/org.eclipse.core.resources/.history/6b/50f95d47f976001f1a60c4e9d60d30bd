@@ -88,7 +88,7 @@ int main(void)
   	LED7_init ();
   	HAL_TIM_Base_Start_IT(&htim2);
   	setTimer(0,50);
-  	setTimer(1,10000);
+  	setTimer(1,5000);
   }
   /* USER CODE END Init */
 
@@ -111,14 +111,55 @@ int main(void)
   /* Infinite loop */
   /* USER CODE BEGIN WHILE */
   int led_scan_period=25; // 1Hz = 2500, 25Hz = 100, 100Hz = 25
-  uint8_t temp_shift;
+  uint8_t second = 0;
+  uint8_t minute = 59;
+  uint8_t hour = 23;
+  uint8_t minute2 = 9;
+  uint8_t minute1 = 5;
+  uint8_t hour2 = 3;
+  uint8_t hour1 = 2;
+  int one_second_flag=0;
+  int one_minute_flag=0;
+  int colon_status=0;
 
-  void shift_7seg(){
-	  temp_shift=led7seg[3];
-	  led7seg[3]=led7seg[2];
-	  led7seg[2]=led7seg[1];
-	  led7seg[1]=led7seg[0];
-	  led7seg[0]=temp_shift;
+  void time_update()
+  {
+  	second = (second + 1) % 60;
+  	if(second == 0)
+  	{
+  		minute++;
+  		if(minute > 59)
+  		{
+  			minute = 0;
+  			hour++;
+  		}
+  		if(hour > 23)
+  		{
+  			hour = 0;
+  		}
+  		minute1 = minute / 10;
+  		minute2 = minute % 10;
+  		hour1 = hour / 10;
+  		hour2 = hour % 10;
+  	}
+  }
+
+  void Update_7seg()
+  {
+  	//write number1 at led index 0 (not show dot)
+	LED7_SetDigit(hour1, 0, 0);
+	LED7_SetDigit(hour2, 1, 0);
+	LED7_SetDigit(minute1, 2, 0);
+	LED7_SetDigit(minute2, 3, 0);
+  }
+
+  void Toggle_Colon(){
+	  if(colon_status>0){
+		  colon_status=0;
+	  }else{
+		  colon_status=1;
+	  }
+	  LED7_SetColon(colon_status);
   }
 
   while (1)
@@ -128,8 +169,22 @@ int main(void)
 		  LED7_Scan();
 	  }
 	  if(timer_flag[1]==1){
-		  setTimer(1, 10000);
-		  shift_7seg();
+		  setTimer(1, 5000);
+		  Toggle_Colon(); // OK
+
+		  if(one_second_flag>0){
+			  one_second_flag=0;
+			  time_update();
+		  }else{
+			  one_second_flag=1;
+		  }
+
+		  Update_7seg();
+//		  if(one_minute_flag>=120){
+//			  Update_7seg();
+//			  one_minute_flag=0;
+//		  }
+//		  one_minute_flag++;
 	  }
 
     /* USER CODE END WHILE */
