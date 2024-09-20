@@ -169,7 +169,7 @@ int main(void)
 		  LED7_Scan();
 	  }
 	  if(timer_flag[1]==1){
-		  setTimer(1, 5000);
+		  setTimer(1, 5000/10);
 		  Toggle_Colon(); // OK
 
 		  if(one_second_flag>0){

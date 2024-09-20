@@ -17,6 +17,4 @@ void LED7_SetColon ( uint8_t status );
 void LED_On ( uint8_t index );
 void LED_Off ( uint8_t index );
 
-extern uint8_t arrayOfNum[10];
-
 #endif /* INC_LED7_SEG_H_ */

@@ -124,7 +124,7 @@ int main(void)
 
   void time_update()
   {
-  	second = (second + 1) % 60;
+  	second = (second + 1) % 1;
   	if(second == 0)
   	{
   		minute++;
@@ -171,7 +171,6 @@ int main(void)
 	  if(timer_flag[1]==1){
 		  setTimer(1, 5000);
 		  Toggle_Colon(); // OK
-
 		  if(one_second_flag>0){
 			  one_second_flag=0;
 			  time_update();
@@ -179,12 +178,11 @@ int main(void)
 			  one_second_flag=1;
 		  }
 
-		  Update_7seg();
-//		  if(one_minute_flag>=120){
-//			  Update_7seg();
-//			  one_minute_flag=0;
-//		  }
-//		  one_minute_flag++;
+		  if(one_minute_flag>=120){
+			  Update_7seg();
+			  one_minute_flag=0;
+		  }
+		  one_minute_flag++;
 	  }
 
     /* USER CODE END WHILE */

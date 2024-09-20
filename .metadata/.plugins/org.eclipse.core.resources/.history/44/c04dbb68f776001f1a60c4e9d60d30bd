@@ -124,7 +124,7 @@ int main(void)
 
   void time_update()
   {
-  	second = (second + 1) % 60;
+  	second = (second + 1) % 1;
   	if(second == 0)
   	{
   		minute++;
