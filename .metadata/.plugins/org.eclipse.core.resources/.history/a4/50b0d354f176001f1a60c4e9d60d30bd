@@ -109,7 +109,7 @@ int main(void)
 
   /* Infinite loop */
   /* USER CODE BEGIN WHILE */
-  int led_scan_period=25; // 1Hz = 2500, 25Hz = 100, 100Hz = 25
+  int led_scan_period=25; // 1Hz = 25, 25Hz = 100, 100Hz = 400
 
   while (1)
   {
