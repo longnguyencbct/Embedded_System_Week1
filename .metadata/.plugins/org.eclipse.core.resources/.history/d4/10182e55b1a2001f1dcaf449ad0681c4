@@ -25,7 +25,6 @@
 #include "LED7_seg.h"
 #include "button.h"
 #include "stdint.h"
-#include "picture.h"
 #include "lcd.h"
 
 /* USER CODE END Includes */
