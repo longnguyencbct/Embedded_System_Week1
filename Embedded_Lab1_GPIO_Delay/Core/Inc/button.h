@@ -8,8 +8,7 @@
 #ifndef INC_BUTTON_H_
 #define INC_BUTTON_H_
 
-#include "spi.h"
-#include "gpio.h"
+#include "stdint.h"
 
 extern uint16_t button_count[16];
 

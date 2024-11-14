@@ -23,6 +23,9 @@
 /* USER CODE BEGIN Includes */
 #include "software_timer.h"
 #include "LED7_seg.h"
+#include "button.h"
+#include "stdint.h"
+#include "lcd.h"
 
 /* USER CODE END Includes */
 
@@ -85,10 +88,9 @@ int main(void)
 
   /* USER CODE BEGIN Init */
   void system_init(){
-  	HAL_GPIO_WritePin( OUTPUT_Y0_GPIO_Port , OUTPUT_Y0_Pin ,0);
-  	HAL_GPIO_WritePin( OUTPUT_Y1_GPIO_Port , OUTPUT_Y1_Pin ,0);
-  	HAL_GPIO_WritePin( DEBUG_LED_GPIO_Port , DEBUG_LED_Pin ,0);
+  	button_init();
   	LED7_init ();
+  	lcd_init();
   	HAL_TIM_Base_Start_IT(&htim2);
   	setTimer(0,50);
   }
@@ -113,51 +115,13 @@ int main(void)
 
   /* Infinite loop */
   /* USER CODE BEGIN WHILE */
-  uint8_t count_LED_debug = 0;
-  uint8_t count_LED_Y0 = 0;
-  uint8_t count_LED_Y1 = 0;
-
-  void test_LEDDebug(){	// toggle every second
-	  count_LED_debug = (count_LED_debug+1)%20;
-	  if( count_LED_debug == 0){
-		  HAL_GPIO_TogglePin(DEBUG_LED_GPIO_Port, DEBUG_LED_Pin);
-	  }
-  }
-
-  void test_LEDY0(){	// Off for 2 seconds then On for 3 seconds
-	  count_LED_Y0 = (count_LED_Y0 + 1)%100;
-	  if( count_LED_Y0 > 40) {
-		  HAL_GPIO_WritePin(OUTPUT_Y0_GPIO_Port, OUTPUT_Y0_Pin, 1);
-	  } else {
-		  HAL_GPIO_WritePin(OUTPUT_Y0_GPIO_Port, OUTPUT_Y0_Pin, 0);
-	  }
-  }
-
-  void test_LEDY1(){	// Off for 0.5 seconds, On for 1.5 seconds
-	  count_LED_Y1 = (count_LED_Y1 + 1)%40;
-	  if(count_LED_Y1 > 10) {
-		  HAL_GPIO_WritePin(OUTPUT_Y1_GPIO_Port, OUTPUT_Y1_Pin, 0);
-	  } else {
-		  HAL_GPIO_WritePin(OUTPUT_Y1_GPIO_Port, OUTPUT_Y1_Pin, 1);
-	  }
-  }
-
-  void test_7seg (){
-  // write number1 at LED index 0 ( not show dot)
-	  LED7_SetDigit(1, 0, 0);
-	  LED7_SetDigit(5, 1, 0);
-	  LED7_SetDigit(4, 2, 0);
-	  LED7_SetDigit(7, 3, 0);
-  }
-
   while (1)
   {
 	  if(timer_flag[0]==1){
 		  setTimer(0,50);
-		  test_LEDDebug();
-		  test_LEDY0();
-		  test_LEDY1();
-		  test_7seg();
+		  button_Scan();
+		  if(button_count[0]>=40) // Only run when button is held down more than 40*50=2000 ms
+			  HAL_GPIO_TogglePin(DEBUG_LED_GPIO_Port, DEBUG_LED_Pin);
 	  }
     /* USER CODE END WHILE */
 

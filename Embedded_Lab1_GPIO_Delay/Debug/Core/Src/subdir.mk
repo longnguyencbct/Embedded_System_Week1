@@ -6,6 +6,8 @@
 # Add inputs and outputs from these tool invocations to the build variables 
 C_SRCS += \
 ../Core/Src/LED7_seg.c \
+../Core/Src/button.c \
+../Core/Src/lcd.c \
 ../Core/Src/main.c \
 ../Core/Src/software_timer.c \
 ../Core/Src/stm32f4xx_hal_msp.c \
@@ -16,6 +18,8 @@ C_SRCS += \
 
 OBJS += \
 ./Core/Src/LED7_seg.o \
+./Core/Src/button.o \
+./Core/Src/lcd.o \
 ./Core/Src/main.o \
 ./Core/Src/software_timer.o \
 ./Core/Src/stm32f4xx_hal_msp.o \
@@ -26,6 +30,8 @@ OBJS += \
 
 C_DEPS += \
 ./Core/Src/LED7_seg.d \
+./Core/Src/button.d \
+./Core/Src/lcd.d \
 ./Core/Src/main.d \
 ./Core/Src/software_timer.d \
 ./Core/Src/stm32f4xx_hal_msp.d \
@@ -42,7 +48,7 @@ Core/Src/%.o Core/Src/%.su Core/Src/%.cyclo: ../Core/Src/%.c Core/Src/subdir.mk
 clean: clean-Core-2f-Src
 
 clean-Core-2f-Src:
-	-$(RM) ./Core/Src/LED7_seg.cyclo ./Core/Src/LED7_seg.d ./Core/Src/LED7_seg.o ./Core/Src/LED7_seg.su ./Core/Src/main.cyclo ./Core/Src/main.d ./Core/Src/main.o ./Core/Src/main.su ./Core/Src/software_timer.cyclo ./Core/Src/software_timer.d ./Core/Src/software_timer.o ./Core/Src/software_timer.su ./Core/Src/stm32f4xx_hal_msp.cyclo ./Core/Src/stm32f4xx_hal_msp.d ./Core/Src/stm32f4xx_hal_msp.o ./Core/Src/stm32f4xx_hal_msp.su ./Core/Src/stm32f4xx_it.cyclo ./Core/Src/stm32f4xx_it.d ./Core/Src/stm32f4xx_it.o ./Core/Src/stm32f4xx_it.su ./Core/Src/syscalls.cyclo ./Core/Src/syscalls.d ./Core/Src/syscalls.o ./Core/Src/syscalls.su ./Core/Src/sysmem.cyclo ./Core/Src/sysmem.d ./Core/Src/sysmem.o ./Core/Src/sysmem.su ./Core/Src/system_stm32f4xx.cyclo ./Core/Src/system_stm32f4xx.d ./Core/Src/system_stm32f4xx.o ./Core/Src/system_stm32f4xx.su
+	-$(RM) ./Core/Src/LED7_seg.cyclo ./Core/Src/LED7_seg.d ./Core/Src/LED7_seg.o ./Core/Src/LED7_seg.su ./Core/Src/button.cyclo ./Core/Src/button.d ./Core/Src/button.o ./Core/Src/button.su ./Core/Src/lcd.cyclo ./Core/Src/lcd.d ./Core/Src/lcd.o ./Core/Src/lcd.su ./Core/Src/main.cyclo ./Core/Src/main.d ./Core/Src/main.o ./Core/Src/main.su ./Core/Src/software_timer.cyclo ./Core/Src/software_timer.d ./Core/Src/software_timer.o ./Core/Src/software_timer.su ./Core/Src/stm32f4xx_hal_msp.cyclo ./Core/Src/stm32f4xx_hal_msp.d ./Core/Src/stm32f4xx_hal_msp.o ./Core/Src/stm32f4xx_hal_msp.su ./Core/Src/stm32f4xx_it.cyclo ./Core/Src/stm32f4xx_it.d ./Core/Src/stm32f4xx_it.o ./Core/Src/stm32f4xx_it.su ./Core/Src/syscalls.cyclo ./Core/Src/syscalls.d ./Core/Src/syscalls.o ./Core/Src/syscalls.su ./Core/Src/sysmem.cyclo ./Core/Src/sysmem.d ./Core/Src/sysmem.o ./Core/Src/sysmem.su ./Core/Src/system_stm32f4xx.cyclo ./Core/Src/system_stm32f4xx.d ./Core/Src/system_stm32f4xx.o ./Core/Src/system_stm32f4xx.su
 
 .PHONY: clean-Core-2f-Src
 

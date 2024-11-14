@@ -5,6 +5,7 @@
  *      Author: clong
  */
 #include "button.h"
+#include "main.h"
 
 uint16_t button_count[16];
 uint16_t spi_button = 0x0000;
