@@ -27,6 +27,7 @@
 #include "stdint.h"
 #include "picture.h"
 #include "lcd.h"
+#include "ds3231.h"
 
 /* USER CODE END Includes */
 
@@ -46,6 +47,8 @@
 /* USER CODE END PM */
 
 /* Private variables ---------------------------------------------------------*/
+I2C_HandleTypeDef hi2c1;
+
 SPI_HandleTypeDef hspi1;
 
 TIM_HandleTypeDef htim2;
@@ -53,7 +56,7 @@ TIM_HandleTypeDef htim2;
 SRAM_HandleTypeDef hsram1;
 
 /* USER CODE BEGIN PV */
-
+uint8_t count_led_debug = 0;
 /* USER CODE END PV */
 
 /* Private function prototypes -----------------------------------------------*/
@@ -62,6 +65,7 @@ static void MX_GPIO_Init(void);
 static void MX_TIM2_Init(void);
 static void MX_SPI1_Init(void);
 static void MX_FSMC_Init(void);
+static void MX_I2C1_Init(void);
 /* USER CODE BEGIN PFP */
 
 /* USER CODE END PFP */
@@ -113,6 +117,33 @@ int main(void)
       lcd_ShowPicture(80, 200, 90, 90, gImage_pic);
   }
 
+  void test_LedDebug() {
+      count_led_debug = (count_led_debug + 1) % 20;
+      if (count_led_debug == 0) {
+          HAL_GPIO_TogglePin(DEBUG_LED_GPIO_Port, DEBUG_LED_Pin);
+      }
+  }
+
+  void updateTime() {
+      ds3231_Write(ADDRESS_YEAR, 23);
+      ds3231_Write(ADDRESS_MONTH, 10);
+      ds3231_Write(ADDRESS_DATE, 20);
+      ds3231_Write(ADDRESS_DAY, 6);
+      ds3231_Write(ADDRESS_HOUR, 20);
+      ds3231_Write(ADDRESS_MIN, 11);
+      ds3231_Write(ADDRESS_SEC, 23);
+  }
+
+  void displayTime() {
+      lcd_ShowIntNum(70, 100, ds3231_hours, 2, GREEN, BLACK, 24);
+      lcd_ShowIntNum(110, 100, ds3231_min, 2, GREEN, BLACK, 24);
+      lcd_ShowIntNum(150, 100, ds3231_sec, 2, GREEN, BLACK, 24);
+      lcd_ShowIntNum(20, 130, ds3231_day, 2, YELLOW, BLACK, 24);
+      lcd_ShowIntNum(70, 130, ds3231_date, 2, YELLOW, BLACK, 24);
+      lcd_ShowIntNum(110, 130, ds3231_month, 2, YELLOW, BLACK, 24);
+      lcd_ShowIntNum(150, 130, ds3231_year, 2, YELLOW, BLACK, 24);
+  }
+
   /* USER CODE END Init */
 
   /* Configure the system clock */
@@ -127,11 +158,13 @@ int main(void)
   MX_TIM2_Init();
   MX_SPI1_Init();
   MX_FSMC_Init();
+  MX_I2C1_Init();
   /* USER CODE BEGIN 2 */
   system_init();
-  LED7_SetColon(1) ;
-  lcd_Clear(WHITE);
-  test_lcd ();
+//  LED7_SetColon(1) ;
+  lcd_Clear(BLACK);
+//  test_lcd ();
+  updateTime();
   /* USER CODE END 2 */
 
   /* Infinite loop */
@@ -141,7 +174,8 @@ int main(void)
 	  if(timer_flag[0]==1){
 		  setTimer(0,50);
 		  button_Scan();
-		  test_button();
+		  ds3231_ReadTime () ;
+		  displayTime () ;
 	  }
     /* USER CODE END WHILE */
 
@@ -194,6 +228,40 @@ void SystemClock_Config(void)
   {
     Error_Handler();
   }
+}
+
+/**
+  * @brief I2C1 Initialization Function
+  * @param None
+  * @retval None
+  */
+static void MX_I2C1_Init(void)
+{
+
+  /* USER CODE BEGIN I2C1_Init 0 */
+
+  /* USER CODE END I2C1_Init 0 */
+
+  /* USER CODE BEGIN I2C1_Init 1 */
+
+  /* USER CODE END I2C1_Init 1 */
+  hi2c1.Instance = I2C1;
+  hi2c1.Init.ClockSpeed = 100000;
+  hi2c1.Init.DutyCycle = I2C_DUTYCYCLE_2;
+  hi2c1.Init.OwnAddress1 = 0;
+  hi2c1.Init.AddressingMode = I2C_ADDRESSINGMODE_7BIT;
+  hi2c1.Init.DualAddressMode = I2C_DUALADDRESS_DISABLE;
+  hi2c1.Init.OwnAddress2 = 0;
+  hi2c1.Init.GeneralCallMode = I2C_GENERALCALL_DISABLE;
+  hi2c1.Init.NoStretchMode = I2C_NOSTRETCH_DISABLE;
+  if (HAL_I2C_Init(&hi2c1) != HAL_OK)
+  {
+    Error_Handler();
+  }
+  /* USER CODE BEGIN I2C1_Init 2 */
+
+  /* USER CODE END I2C1_Init 2 */
+
 }
 
 /**

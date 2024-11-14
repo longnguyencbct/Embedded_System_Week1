@@ -28,6 +28,7 @@ extern "C" {
 
 /* Includes ------------------------------------------------------------------*/
 #include "stm32f4xx_hal.h"
+
 /* Private includes ----------------------------------------------------------*/
 /* USER CODE BEGIN Includes */
 #include "stdint.h"
@@ -88,6 +89,8 @@ static void MX_SPI1_Init(void);
 extern SPI_HandleTypeDef hspi1;
 
 extern TIM_HandleTypeDef htim2;
+
+extern I2C_HandleTypeDef hi2c1;
 /* USER CODE END Private defines */
 
 #ifdef __cplusplus

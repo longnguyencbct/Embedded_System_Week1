@@ -1,3 +1,5 @@
 1731602363699	Delete resource 'Embedded_Lab1_GPIO_Delay/Core/Inc/spi.h'
 1731603816752	Delete resource 'Embedded_Lab1_GPIO_Delay/Core/Inc/spi.h'
 1731603821909	Delete resource 'Embedded_Lab1_GPIO_Delay/Core/Inc/gpio.h'
+1731608213253	Delete resource 'Embedded_Lab1_GPIO_Delay/Core/Inc/i2c.h'
+1731608219701	Delete resource 'Embedded_Lab1_GPIO_Delay/Core/Src/i2c.c'
