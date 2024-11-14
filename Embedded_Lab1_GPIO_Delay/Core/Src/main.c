@@ -287,16 +287,16 @@ void test_button(){
 	}
 }
 
-void test_Uart(){
-	if(button_count[12] == 1){
-		uart_Rs232SendNum(ds3231_hours);
-		uart_Rs232SendString(":");
-		uart_Rs232SendNum(ds3231_min);
-		uart_Rs232SendString(":");
-		uart_Rs232SendNum(ds3231_sec);
-		uart_Rs232SendString("\n");
-	}
-}
+//void test_Uart(){
+//	if(button_count[12] == 1){
+//		uart_Rs232SendNum(ds3231_hours);
+//		uart_Rs232SendString(":");
+//		uart_Rs232SendNum(ds3231_min);
+//		uart_Rs232SendString(":");
+//		uart_Rs232SendNum(ds3231_sec);
+//		uart_Rs232SendString("\n");
+//	}
+//}
 
 void updateTime(){
         ds3231_Write(ADDRESS_YEAR, 23);
@@ -308,7 +308,7 @@ void updateTime(){
         ds3231_Write(ADDRESS_SEC, 30);
 }
 void button5(){
-    if (button_count[0] == 1) {
+    if (button_count[12] == 1) {
         current_mode = (current_mode +1) % 4;
        lcd_Clear(BLACK);
        request_RS232_count =0;
@@ -323,7 +323,7 @@ uint8_t isButtonUp()
 }
 uint8_t isButtonDown()
 {
-    if (button_count[7] == 1)
+    if (button_count[14] == 1)
         return 1;
     else
         return 0;
@@ -340,12 +340,19 @@ void displayTime(){
 void adjustTime() {
         counter_blink = (counter_blink + 1)%10;
     // Increment the selected part of time
-    if (isButtonUp()) {
+    if (button_count[3]%10==1) {
         if (adjust_part == 0){
                 ds3231_hours = (ds3231_hours + 1) % 24;
         }
         else if (adjust_part == 1) ds3231_min = (ds3231_min + 1) % 60;
         else if (adjust_part == 2) ds3231_sec = (ds3231_sec + 1) % 60;
+    }
+    if (button_count[7]%10==1) {
+        if (adjust_part == 0){
+                ds3231_hours = (ds3231_hours - 1) % 24;
+        }
+        else if (adjust_part == 1) ds3231_min = (ds3231_min - 1) % 60;
+        else if (adjust_part == 2) ds3231_sec = (ds3231_sec - 1) % 60;
     }
     // Save part and move to the next part
     if (isButtonDown()) {
