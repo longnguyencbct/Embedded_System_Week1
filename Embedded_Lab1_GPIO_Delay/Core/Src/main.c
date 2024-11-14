@@ -53,6 +53,8 @@ SPI_HandleTypeDef hspi1;
 
 TIM_HandleTypeDef htim2;
 
+UART_HandleTypeDef huart1;
+
 SRAM_HandleTypeDef hsram1;
 
 /* USER CODE BEGIN PV */
@@ -66,6 +68,7 @@ static void MX_TIM2_Init(void);
 static void MX_SPI1_Init(void);
 static void MX_FSMC_Init(void);
 static void MX_I2C1_Init(void);
+static void MX_USART1_UART_Init(void);
 /* USER CODE BEGIN PFP */
 
 /* USER CODE END PFP */
@@ -97,6 +100,7 @@ int main(void)
   	LED7_init ();
   	lcd_init();
   	HAL_TIM_Base_Start_IT(&htim2);
+  	uart_init_rs232();
   	setTimer(0,50);
   }
 
@@ -121,6 +125,17 @@ int main(void)
       count_led_debug = (count_led_debug + 1) % 20;
       if (count_led_debug == 0) {
           HAL_GPIO_TogglePin(DEBUG_LED_GPIO_Port, DEBUG_LED_Pin);
+      }
+  }
+
+  void test_Uart() {
+      if (button_count[12] == 1) {
+          uart_Rs232SendNum(ds3231_hours);
+          uart_Rs232SendString(":");
+          uart_Rs232SendNum(ds3231_min);
+          uart_Rs232SendString(":");
+          uart_Rs232SendNum(ds3231_sec);
+          uart_Rs232SendString("\n");
       }
   }
 
@@ -159,6 +174,7 @@ int main(void)
   MX_SPI1_Init();
   MX_FSMC_Init();
   MX_I2C1_Init();
+  MX_USART1_UART_Init();
   /* USER CODE BEGIN 2 */
   system_init();
 //  LED7_SetColon(1) ;
@@ -174,8 +190,9 @@ int main(void)
 	  if(timer_flag[0]==1){
 		  setTimer(0,50);
 		  button_Scan();
+		  test_LedDebug () ;
 		  ds3231_ReadTime () ;
-		  displayTime () ;
+		  test_Uart () ;
 	  }
     /* USER CODE END WHILE */
 
@@ -344,6 +361,39 @@ static void MX_TIM2_Init(void)
   /* USER CODE BEGIN TIM2_Init 2 */
 
   /* USER CODE END TIM2_Init 2 */
+
+}
+
+/**
+  * @brief USART1 Initialization Function
+  * @param None
+  * @retval None
+  */
+static void MX_USART1_UART_Init(void)
+{
+
+  /* USER CODE BEGIN USART1_Init 0 */
+
+  /* USER CODE END USART1_Init 0 */
+
+  /* USER CODE BEGIN USART1_Init 1 */
+
+  /* USER CODE END USART1_Init 1 */
+  huart1.Instance = USART1;
+  huart1.Init.BaudRate = 115200;
+  huart1.Init.WordLength = UART_WORDLENGTH_8B;
+  huart1.Init.StopBits = UART_STOPBITS_1;
+  huart1.Init.Parity = UART_PARITY_NONE;
+  huart1.Init.Mode = UART_MODE_TX_RX;
+  huart1.Init.HwFlowCtl = UART_HWCONTROL_NONE;
+  huart1.Init.OverSampling = UART_OVERSAMPLING_16;
+  if (HAL_UART_Init(&huart1) != HAL_OK)
+  {
+    Error_Handler();
+  }
+  /* USER CODE BEGIN USART1_Init 2 */
+
+  /* USER CODE END USART1_Init 2 */
 
 }
 

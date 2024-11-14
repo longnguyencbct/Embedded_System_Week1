@@ -91,6 +91,8 @@ extern SPI_HandleTypeDef hspi1;
 extern TIM_HandleTypeDef htim2;
 
 extern I2C_HandleTypeDef hi2c1;
+
+extern UART_HandleTypeDef huart1;
 /* USER CODE END Private defines */
 
 #ifdef __cplusplus
