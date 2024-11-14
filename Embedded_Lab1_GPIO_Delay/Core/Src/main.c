@@ -184,7 +184,7 @@ int main(void)
           case ALARM_MODE:
         	  lcd_StrCenter(0, 2, "ALARM Mode", WHITE, BLACK, 16, 1);
               setAlarm();
-              adjust_part =0;
+//              adjust_part =0;
               break;
           case ADJUST_RS232_Mode:
         	  lcd_StrCenter(0, 2, "ADJUST RS232 Mode", WHITE, BLACK, 16, 1);
@@ -409,7 +409,7 @@ void adjustTime() {
 static uint8_t alarm_active = 2;  // Flag to indicate if the alarm is active
 void setAlarm() {
     // Adjust alarm time
-    if (isButtonUp()) {
+    if (button_count[3]%10==1) {
         if (adjust_part == 0) alarm_hours = (alarm_hours + 1) % 24;
         else if (adjust_part == 1) alarm_minutes = (alarm_minutes + 1) % 60;
     }
