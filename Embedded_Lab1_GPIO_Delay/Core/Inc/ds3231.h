@@ -1,14 +1,14 @@
 /*
  * ds3231.h
  *
- *  Created on: Nov 15, 2024
- *      Author: clong
+ *  Created on: Sep 26, 2023
+ *      Author: HaHuyen
  */
 
 #ifndef INC_DS3231_H_
 #define INC_DS3231_H_
 
-#include "main.h"
+#include "i2c.h"
 #include "utils.h"
 
 #define ADDRESS_SEC			0x00
@@ -34,3 +34,4 @@ void ds3231_Write(uint8_t address, uint8_t value);
 void ds3231_ReadTime();
 
 #endif /* INC_DS3231_H_ */
+

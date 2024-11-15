@@ -1,29 +1,39 @@
 /*
  * software_timer.c
  *
- *  Created on: Sep 19, 2024
- *      Author: clong
+ *  Created on: Sep 24, 2023
+ *      Author: HaHuyen
  */
 
 #include "software_timer.h"
 
-#define TIMERNUM 10
-int timer_counter[TIMERNUM]={0,0,0,0,0,0,0,0,0,0};
-int timer_flag[TIMERNUM]={0,0,0,0,0,0,0,0,0,0};
+#define TIMER_CYCLE_2 1
 
-void setTimer(int INDEX,int duration){
-	timer_counter[INDEX]=duration;
-	timer_flag[INDEX]=0;
+
+uint16_t flag_timer2 = 0;
+uint16_t timer2_counter = 0;
+uint16_t timer2_MUL = 0;
+
+void timer_init(){
+	HAL_TIM_Base_Start_IT(&htim2);
 }
 
-void timerRun(){
-	for(int i=0;i<TIMERNUM;i++){
-		if(timer_counter[i] > 0){
-			timer_counter[i]--;
-			if(timer_counter[i] <=0){
-				timer_flag[i]=1;
+void setTimer2(uint16_t duration){
+	timer2_MUL = duration/TIMER_CYCLE_2;
+	timer2_counter = timer2_MUL;
+	flag_timer2 = 0;
+}
+
+void HAL_TIM_PeriodElapsedCallback(TIM_HandleTypeDef *htim){
+	if(htim->Instance == TIM2){
+		if(timer2_counter > 0){
+			timer2_counter--;
+			if(timer2_counter == 0) {
+				flag_timer2 = 1;
+				timer2_counter = timer2_MUL;
 			}
 		}
+		led7_Scan();
 	}
 }
 

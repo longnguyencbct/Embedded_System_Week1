@@ -1,12 +1,14 @@
 /*
  * lcd.h
  *
- *  Created on: Nov 15, 2024
- *      Author: clong
+ *  Created on: Sep 25, 2023
+ *      Author: HaHuyen
  */
+
 
 #ifndef INC_LCD_H_
 #define INC_LCD_H_
+
 /*
  * lcd.h
  *
@@ -14,11 +16,11 @@
  *      Author: phamv
  */
 //#include "fsmc.h"
+#include "gpio.h"
 #include "stdlib.h"
 #include <string.h>
-#include "main.h"
 
-#define DFT_SCAN_DIR  L2R_U2D
+#define DFT_SCAN_DIR  U2D_R2L
 
 //chinh huong
 #define L2R_U2D  0x00
@@ -78,8 +80,8 @@ typedef struct
 #define LGRAYBLUE        0XA651
 #define LBBLUE           0X2B12
 
-static void LCD_WR_DATA(uint16_t data);
-static uint16_t LCD_RD_DATA(void);
+inline void LCD_WR_DATA(uint16_t data);
+inline uint16_t LCD_RD_DATA(void);
 
 void lcd_SetCursor(uint16_t x,uint16_t y);
 void lcd_AddressSet(uint16_t x1,uint16_t y1,uint16_t x2,uint16_t y2);
@@ -93,10 +95,10 @@ void lcd_DrawPoint(uint16_t x,uint16_t y,uint16_t color);
 void lcd_DrawLine(uint16_t x1,uint16_t y1,uint16_t x2,uint16_t y2,uint16_t color);
 void lcd_DrawRectangle(uint16_t x1, uint16_t y1, uint16_t x2, uint16_t y2,uint16_t color);
 
-void lcd_ShowChar(uint16_t x,uint16_t y,uint8_t character,uint16_t fc,uint16_t bc,uint8_t sizey,uint8_t mode);
+void lcd_ShowChar(uint16_t x,uint16_t y,uint8_t num,uint16_t fc,uint16_t bc,uint8_t sizey,uint8_t mode);
 uint32_t mypow(uint8_t m,uint8_t n);
 void lcd_ShowIntNum(uint16_t x,uint16_t y,uint16_t num,uint8_t len,uint16_t fc,uint16_t bc,uint8_t sizey);
-void lcd_ShowFloatNum(uint16_t x,uint16_t y,float num,uint8_t len,uint16_t fc,uint16_t bc,uint8_t sizey);
+void lcd_ShowFloatNum1(uint16_t x,uint16_t y,float num,uint8_t len,uint16_t fc,uint16_t bc,uint8_t sizey);
 
 void lcd_ShowPicture(uint16_t x,uint16_t y,uint16_t length,uint16_t width,const uint8_t pic[]);
 
@@ -104,7 +106,8 @@ void lcd_SetDir(uint8_t dir);
 void lcd_init(void);
 
 void lcd_DrawCircle(int xc, int yc,uint16_t c,int r, int fill);
-void lcd_ShowStr(uint16_t x, uint16_t y,char *str,uint16_t fc, uint16_t bc,uint8_t sizey,uint8_t mode);
-void lcd_StrCenter(uint16_t x, uint16_t y,char *str,uint16_t fc,uint16_t bc,uint8_t sizey,uint8_t mode);
+void lcd_ShowStr(uint16_t x, uint16_t y,uint8_t *str,uint16_t fc, uint16_t bc,uint8_t sizey,uint8_t mode);
+void lcd_StrCenter(uint16_t x, uint16_t y,uint8_t *str,uint16_t fc,uint16_t bc,uint8_t sizey,uint8_t mode);
 
+void lcd_ShowBackground();
 #endif /* INC_LCD_H_ */

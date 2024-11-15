@@ -1,14 +1,14 @@
 /*
  * utils.h
  *
- *  Created on: Nov 15, 2024
- *      Author: clong
+ *  Created on: Sep 26, 2023
+ *      Author: HaHuyen
  */
 
 #ifndef INC_UTILS_H_
 #define INC_UTILS_H_
 
-#include "main.h"
+#include <stdint.h>
 
 
 uint8_t BCD2DEC(uint8_t data);
