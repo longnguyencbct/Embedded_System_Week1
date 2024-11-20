@@ -24,8 +24,10 @@
 #include "i2c.h"
 #include "spi.h"
 #include "tim.h"
+#include "usart.h"
 #include "gpio.h"
 #include "fsmc.h"
+#include "uart.h"
 
 /* Private includes ----------------------------------------------------------*/
 /* USER CODE BEGIN Includes */
@@ -101,13 +103,14 @@ int main(void)
 
   /* Initialize all configured peripherals */
   MX_GPIO_Init();
-  MX_TIM2_Init();
+  MX_DMA_Init();
   MX_SPI1_Init();
   MX_FSMC_Init();
   MX_I2C1_Init();
   MX_TIM13_Init();
-  MX_DMA_Init();
+  MX_TIM2_Init();
   MX_ADC1_Init();
+  MX_USART1_UART_Init();
   /* USER CODE BEGIN 2 */
   system_init();
   /* USER CODE END 2 */
@@ -181,7 +184,7 @@ void system_init(){
     lcd_init();               // Khởi tạo LCD
     sensor_init();            // Khởi tạo cảm biến
     buzzer_init();            // Khởi tạo Buzzer
-    uart_init();              // Khởi tạo UART
+    uart_init_rs232();              // Khởi tạo UART
     ds3231_init();            // Khởi tạo RTC
     setTimer2(50);            // Chu kỳ hệ thống 50ms
 }
@@ -224,48 +227,52 @@ uint8_t count_adc = 0;
 void test_Adc() {
     count_adc = (count_adc + 1) % 20;
     if (count_adc == 0) {
-        sensor_Read();
+		sensor_Read();  // �?�?c dữ liệu từ cảm biến
 
-        // Đọc dữ liệu từ cảm biến
-        float voltage = sensor_GetVoltage();
-        float current = sensor_GetCurrent();
-        float power = voltage * current; // Tính công suất tiêu thụ
-        uint16_t light = sensor_GetLight();
-        uint16_t humidity_adc = sensor_GetPotentiometer();
-        float temperature = sensor_GetTemperature();
+		// �?iện áp, dòng điện, công suất tiêu thụ
+		float voltage = sensor_GetVoltage();
+		float current = sensor_GetCurrent();
+		float power = voltage * current;
 
-        // Quy đổi độ ẩm từ ADC sang %
-        uint16_t humidity_percent = (humidity_adc * 100) / 4095;
+		// �?ộ sáng
+		uint16_t light = sensor_GetLight();
+		const char *light_status = (light > 2000) ? "Strong" : "Weak";
 
-        // Phân loại ánh sáng
-        const char* light_str = (light > 2000) ? "Strong" : "Weak";
+		// �?ộ ẩm (tính phần trăm)
+		uint16_t humidity_adc = sensor_GetPotentiometer();
+		uint16_t humidity_percent = (humidity_adc * 100) / 4095;
 
-        // Hiển thị thông số lên LCD
-        lcd_ShowStr(10, 100, "Voltage (V):", RED, BLACK, 16, 0);
-        lcd_ShowFloatNum(150, 100, voltage, 2, RED, BLACK, 16);
+		// Nhiệt độ
+		float temperature = sensor_GetTemperature();
 
-        lcd_ShowStr(10, 120, "Current (mA):", RED, BLACK, 16, 0);
-        lcd_ShowFloatNum(150, 120, current, 2, RED, BLACK, 16);
+		// Th�?i gian thực
+		char time_str[10];
+		ds3231_GetTime(time_str); // Lấy th�?i gian từ RTC
 
-        lcd_ShowStr(10, 140, "Power (mW):", RED, BLACK, 16, 0);
-        lcd_ShowFloatNum(150, 140, power, 2, RED, BLACK, 16);
+		// Hiển thị lên LCD
+		lcd_ShowStr(10, 50, "Voltage (V):", RED, BLACK, 16, 0);
+		lcd_ShowFloatNum(150, 50, voltage, 2, RED, BLACK, 16);
 
-        lcd_ShowStr(10, 160, "Light:", RED, BLACK, 16, 0);
-        lcd_ShowStr(150, 160, light_str, RED, BLACK, 16, 0);
+		lcd_ShowStr(10, 70, "Current (mA):", RED, BLACK, 16, 0);
+		lcd_ShowFloatNum(150, 70, current, 2, RED, BLACK, 16);
 
-        lcd_ShowStr(10, 180, "Humidity (%):", RED, BLACK, 16, 0);
-        lcd_ShowIntNum(150, 180, humidity_percent, 4, RED, BLACK, 16);
+		lcd_ShowStr(10, 90, "Power (mW):", RED, BLACK, 16, 0);
+		lcd_ShowFloatNum(150, 90, power, 2, RED, BLACK, 16);
 
-        lcd_ShowStr(10, 200, "Temp (C):", RED, BLACK, 16, 0);
-        lcd_ShowFloatNum(150, 200, temperature, 2, RED, BLACK, 16);
+		lcd_ShowStr(10, 110, "Light:", RED, BLACK, 16, 0);
+		lcd_ShowStr(150, 110, light_status, RED, BLACK, 16, 0);
 
-        // Hiển thị thời gian
-        char time_str[10];
-        ds3231_GetTime(time_str);
-        lcd_ShowStr(10, 220, "Time:", RED, BLACK, 16, 0);
-        lcd_ShowStr(150, 220, time_str, RED, BLACK, 16);
+		lcd_ShowStr(10, 130, "Humidity (%):", RED, BLACK, 16, 0);
+		lcd_ShowIntNum(150, 130, humidity_percent, 4, RED, BLACK, 16);
+
+		lcd_ShowStr(10, 150, "Temperature (C):", RED, BLACK, 16, 0);
+		lcd_ShowFloatNum(150, 150, temperature, 2, RED, BLACK, 16);
+
+		lcd_ShowStr(10, 170, "Time:", RED, BLACK, 16, 0);
+		lcd_ShowStr(150, 170, time_str, RED, BLACK, 16,0);
     }
 }
+
 
 
 void test_Buzzer(){

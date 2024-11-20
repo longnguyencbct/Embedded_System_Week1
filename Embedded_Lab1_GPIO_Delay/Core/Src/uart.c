@@ -10,6 +10,13 @@
 uint8_t receive_buffer1 = 0;
 uint8_t msg[100];
 
+// Định nghĩa các biến toàn cục
+uint8_t ring_buffer[RING_BUFFER_SIZE] = {0}; // Buffer vòng để lưu dữ liệu nhận
+uint16_t head = 0;                          // Con trỏ đầu của buffer
+uint16_t tail = 0;                          // Con trỏ cuối của buffer
+uint8_t data_available_flag = 0;            // Cờ đánh dấu dữ liệu mới
+
+
 extern uint16_t head, tail;
 extern uint8_t data_available_flag;
 

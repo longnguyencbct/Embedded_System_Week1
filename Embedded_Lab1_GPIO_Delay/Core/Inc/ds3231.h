@@ -33,5 +33,8 @@ void ds3231_Write(uint8_t address, uint8_t value);
 
 void ds3231_ReadTime();
 
+void ds3231_GetTime(char *time_str);
+
+
 #endif /* INC_DS3231_H_ */
 
