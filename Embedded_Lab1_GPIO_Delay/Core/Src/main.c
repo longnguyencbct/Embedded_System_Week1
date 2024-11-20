@@ -19,10 +19,11 @@
 /* USER CODE END Header */
 /* Includes ------------------------------------------------------------------*/
 #include "main.h"
+#include "adc.h"
+#include "dma.h"
 #include "i2c.h"
 #include "spi.h"
 #include "tim.h"
-#include "usart.h"
 #include "gpio.h"
 #include "fsmc.h"
 
@@ -34,7 +35,8 @@
 #include "lcd.h"
 #include "picture.h"
 #include "ds3231.h"
-#include "uart.h"
+#include "sensor.h"
+#include "buzzer.h"
 /* USER CODE END Includes */
 
 /* Private typedef -----------------------------------------------------------*/
@@ -45,14 +47,6 @@
 /* Private define ------------------------------------------------------------*/
 /* USER CODE BEGIN PD */
 /* USER CODE END PD */
-
-#define DISPLAY_MODE 0
-#define ADJUST_MODE 1
-#define ALARM_MODE 2
-#define ADJUST_RS232_Mode 3
-#define ADJUST_RS232_Mode_ERROR 4
-uint8_t counter_blink=0;
-uint8_t blink_flag =0;
 
 /* Private macro -------------------------------------------------------------*/
 /* USER CODE BEGIN PM */
@@ -65,51 +59,13 @@ uint8_t blink_flag =0;
 
 /* USER CODE END PV */
 
-uint8_t ring_buffer[RING_BUFFER_SIZE];
-uint16_t head = 0; //next write position
-uint16_t tail = 0; //current read position
-uint8_t receive_buffer = 0;
-uint8_t data_available_flag = 0;
-
-uint8_t count_led_debug = 0;
-
-uint8_t current_mode = DISPLAY_MODE;
-uint8_t adjust_part = 0;
-uint8_t alarm_hours = 0;
-uint8_t alarm_minutes = 0;
-
-uint8_t alarm_flag = 0;
-
-uint8_t request_RS232_count = 0;
-
-// constant & gobal var
-#define MAX_ATTEMPTS 3
-#define TIMEOUT 100        // Timeout for 10 seconds (50ms increment per tick)
-#define ERROR_DISPLAY_TIME 60 // 3 seconds (50ms increment per tick)
-uint8_t attempt_count = 0;
-uint16_t timeout_counter = TIMEOUT-1;
-uint8_t temp_value = 0;
-uint8_t digit_count = 0;
-uint8_t request_sent = 0;
-uint8_t error_display_counter = 0;
-uint8_t in_error_display = 0;
-
 /* Private function prototypes -----------------------------------------------*/
 void SystemClock_Config(void);
 /* USER CODE BEGIN PFP */
 void system_init();
 void test_LedDebug();
-void button5();
-void test_Uart();
-
-void displayTime();
-void updateTime();
-
-void adjustTimeRS232(void);
-void adjustTime();
-void setAlarm();
-void checkAlarm();
-void ProcessRingBufferData();
+void test_Buzzer();
+void test_Adc();
 /* USER CODE END PFP */
 
 /* Private user code ---------------------------------------------------------*/
@@ -149,62 +105,26 @@ int main(void)
   MX_SPI1_Init();
   MX_FSMC_Init();
   MX_I2C1_Init();
-  MX_USART1_UART_Init();
+  MX_TIM13_Init();
+  MX_DMA_Init();
+  MX_ADC1_Init();
   /* USER CODE BEGIN 2 */
   system_init();
   /* USER CODE END 2 */
 
   /* Infinite loop */
   /* USER CODE BEGIN WHILE */
+ lcd_Clear(BLACK);
   while (1)
   {
+	  while(!flag_timer2);
+	  flag_timer2 = 0;
+	  button_Scan();
+	  test_LedDebug();
+	  test_Adc();
+	  test_Buzzer();
     /* USER CODE END WHILE */
-      while (!flag_timer2);
-      flag_timer2 = 0;
-      button_Scan();
-      button5();
-  	if (data_available_flag) {
-  	    ProcessRingBufferData();
-  	    data_available_flag = 0;
-  	}
-      switch (current_mode) {
-          case DISPLAY_MODE:
-        	  lcd_StrCenter(0, 2, "DISPLAY MODE", WHITE, BLACK, 16, 1);
-              ds3231_ReadTime();
-              displayTime();
-              checkAlarm();
-              adjust_part =0;
-              break;
 
-          case ADJUST_MODE:
-        	  lcd_StrCenter(0, 2, "ADJUST MANUALLY Mode", WHITE, BLACK, 16, 1);
-              adjustTime();
-              break;
-
-          case ALARM_MODE:
-        	  lcd_StrCenter(0, 2, "ALARM Mode", WHITE, BLACK, 16, 1);
-              setAlarm();
-//              adjust_part =0;
-              break;
-          case ADJUST_RS232_Mode:
-        	  lcd_StrCenter(0, 2, "ADJUST RS232 Mode", WHITE, BLACK, 16, 1);
-        	  adjustTimeRS232();
-        	  break;
-          case ADJUST_RS232_Mode_ERROR:
-        	    lcd_StrCenter(0, 2, "ERROR: No response", RED, BLACK, 16, 1);
-      	        error_display_counter++;
-      	        if (error_display_counter >= ERROR_DISPLAY_TIME) {
-      	            current_mode = DISPLAY_MODE;  // Reset
-      	            lcd_Clear(BLACK);
-      	            in_error_display = 0;
-      	            error_display_counter = 0;
-      	          attempt_count = 0;
-      	          timeout_counter = TIMEOUT;
-      	        }
-        	  break;
-          default:
-              break;
-      }
     /* USER CODE BEGIN 3 */
   }
   /* USER CODE END 3 */
@@ -256,20 +176,15 @@ void SystemClock_Config(void)
 
 /* USER CODE BEGIN 4 */
 void system_init(){
-	  HAL_GPIO_WritePin(OUTPUT_Y0_GPIO_Port, OUTPUT_Y0_Pin, 0);
-	  HAL_GPIO_WritePin(OUTPUT_Y1_GPIO_Port, OUTPUT_Y1_Pin, 0);
-	  HAL_GPIO_WritePin(DEBUG_LED_GPIO_Port, DEBUG_LED_Pin, 0);
 	  timer_init();
-	  led7_init();
 	  button_init();
 	  lcd_init();
-	  uart_init_rs232();
-      ds3231_init();
-
+	  sensor_init();
+	  buzzer_init();
 	  setTimer2(50);
-      lcd_Clear(BLACK);
-      updateTime();
 }
+
+uint8_t count_led_debug = 0;
 
 void test_LedDebug(){
 	count_led_debug = (count_led_debug + 1)%20;
@@ -278,42 +193,6 @@ void test_LedDebug(){
 	}
 }
 
-void test_button(){
-	for(int i = 0; i < 16; i++){
-		if(button_count[i] == 1){
-			led7_SetDigit(i/10, 2, 0);
-			led7_SetDigit(i%10, 3, 0);
-		}
-	}
-}
-
-//void test_Uart(){
-//	if(button_count[12] == 1){
-//		uart_Rs232SendNum(ds3231_hours);
-//		uart_Rs232SendString(":");
-//		uart_Rs232SendNum(ds3231_min);
-//		uart_Rs232SendString(":");
-//		uart_Rs232SendNum(ds3231_sec);
-//		uart_Rs232SendString("\n");
-//	}
-//}
-
-void updateTime(){
-        ds3231_Write(ADDRESS_YEAR, 23);
-        ds3231_Write(ADDRESS_MONTH, 10);
-        ds3231_Write(ADDRESS_DATE, 20);
-        ds3231_Write(ADDRESS_DAY, 6);
-        ds3231_Write(ADDRESS_HOUR, 1);
-        ds3231_Write(ADDRESS_MIN, 2);
-        ds3231_Write(ADDRESS_SEC, 30);
-}
-void button5(){
-    if (button_count[12] == 1) {
-        current_mode = (current_mode +1) % 4;
-       lcd_Clear(BLACK);
-       request_RS232_count =0;
-    }
-}
 uint8_t isButtonUp()
 {
     if (button_count[3] == 1)
@@ -321,247 +200,55 @@ uint8_t isButtonUp()
     else
         return 0;
 }
+
 uint8_t isButtonDown()
 {
-    if (button_count[14] == 1)
+    if (button_count[7] == 1)
         return 1;
     else
         return 0;
 }
-void displayTime(){
-        lcd_ShowIntNum(70, 100, ds3231_hours, 2, GREEN, BLACK, 24);
-        lcd_ShowIntNum(110, 100, ds3231_min, 2, GREEN, BLACK, 24);
-        lcd_ShowIntNum(150, 100, ds3231_sec, 2, GREEN, BLACK, 24);
-        lcd_ShowIntNum(20, 130, ds3231_day, 2, YELLOW, BLACK, 24);
-        lcd_ShowIntNum(70, 130, ds3231_date, 2, YELLOW, BLACK, 24);
-        lcd_ShowIntNum(110, 130, ds3231_month, 2, YELLOW, BLACK, 24);
-        lcd_ShowIntNum(150, 130, ds3231_year, 2, YELLOW, BLACK, 24);
+
+uint8_t isButtonRight()
+{
+    if (button_count[11] == 1)
+        return 1;
+    else
+        return 0;
 }
-void adjustTime() {
-        counter_blink = (counter_blink + 1)%10;
-    // Increment the selected part of time
-    if (button_count[3]%10==1) {
-        if (adjust_part == 0){
-                ds3231_hours = (ds3231_hours + 1) % 24;
-        }
-        else if (adjust_part == 1) ds3231_min = (ds3231_min + 1) % 60;
-        else if (adjust_part == 2) ds3231_sec = (ds3231_sec + 1) % 60;
-    }
-    if (button_count[7]%10==1) {
-        if (adjust_part == 0){
-                ds3231_hours = (ds3231_hours - 1) % 24;
-        }
-        else if (adjust_part == 1) ds3231_min = (ds3231_min - 1) % 60;
-        else if (adjust_part == 2) ds3231_sec = (ds3231_sec - 1) % 60;
-    }
-    // Save part and move to the next part
-    if (isButtonDown()) {
-        adjust_part = (adjust_part + 1) % 3;  // Rotate through hours, minutes, seconds
-        if (adjust_part == 0) {
-                ds3231_Write(ADDRESS_HOUR, ds3231_hours);
-                        ds3231_Write(ADDRESS_MIN, ds3231_min);
-                        ds3231_Write(ADDRESS_SEC, ds3231_sec);
-            current_mode = DISPLAY_MODE;
-            lcd_Clear(BLACK);
-        }
-    }
-    // Display and blink selected part
-    if (adjust_part == 0) {
-            if(counter_blink ==0 &&blink_flag ==0)
-            {
-                    displayTime();
-                    lcd_ShowIntNum(70, 100, ds3231_hours, 2, GREEN, BLACK, 24);
-                    blink_flag =1;
-            }
-            else if (counter_blink ==0 &&blink_flag ==1){
-                    displayTime();
-                    lcd_ShowIntNum(70, 100, ds3231_hours, 2, BLACK, BLACK, 24);
-                    blink_flag =0;
-            }
-    }
-    else if (adjust_part == 1) {
-            if(counter_blink ==0 &&blink_flag ==0)
-            {
-                    displayTime();
-                    lcd_ShowIntNum(110, 100, ds3231_min, 2, GREEN, BLACK, 24);
-                    blink_flag =1;
-            }
-            else if (counter_blink ==0 &&blink_flag ==1){
-                    displayTime();
-                    lcd_ShowIntNum(110, 100, ds3231_min, 2, BLACK, BLACK, 24);
-                    blink_flag =0;
-            }
-    }
-    else if (adjust_part == 2) {
-            if(counter_blink ==0 &&blink_flag ==0)
-            {
-                    displayTime();
-                    lcd_ShowIntNum(150, 100, ds3231_sec, 2, GREEN, BLACK, 24);
-                    blink_flag =1;
-            }
-            else if(counter_blink ==0 &&blink_flag ==1){
-                    displayTime();
-                    lcd_ShowIntNum(150, 100, ds3231_sec, 2, BLACK, BLACK, 24);
-                    blink_flag =0;
-            }
-    }
+
+uint8_t count_adc = 0;
+
+void test_Adc(){
+	count_adc = (count_adc + 1)%20;
+	if(count_adc == 0){
+		sensor_Read();
+		lcd_ShowStr(10, 100, "Voltage:", RED, BLACK, 16, 0);
+		lcd_ShowFloatNum(130, 100,sensor_GetVoltage(), 4, RED, BLACK, 16);
+		lcd_ShowStr(10, 120, "Current:", RED, BLACK, 16, 0);
+		lcd_ShowFloatNum(130, 120,sensor_GetCurrent(), 4, RED, BLACK, 16);
+		lcd_ShowStr(10, 140, "Light:", RED, BLACK, 16, 0);
+		lcd_ShowIntNum(130, 140, sensor_GetLight(), 4, RED, BLACK, 16);
+		lcd_ShowStr(10, 160, "Potentiometer:", RED, BLACK, 16, 0);
+		lcd_ShowIntNum(130, 160, sensor_GetPotentiometer(), 4, RED, BLACK, 16);
+		lcd_ShowStr(10, 180, "Temperature:", RED, BLACK, 16, 0);
+		lcd_ShowFloatNum(130, 180,sensor_GetTemperature(), 4, RED, BLACK, 16);
+	}
 }
-static uint8_t alarm_active = 2;  // Flag to indicate if the alarm is active
-void setAlarm() {
-    // Adjust alarm time
-    if (button_count[3]%10==1) {
-        if (adjust_part == 0) alarm_hours = (alarm_hours + 1) % 24;
-        else if (adjust_part == 1) alarm_minutes = (alarm_minutes + 1) % 60;
-    }
-    if (isButtonDown()) {
-        adjust_part = (adjust_part + 1) % 2;  // Move to next part
-        if (adjust_part == 0) {
-            current_mode = DISPLAY_MODE; // Return to view mode
-            lcd_Clear(BLACK);
-            alarm_active = 1;
-        }
-    }
-    // Display alarm time
-    lcd_ShowIntNum(70, 100, alarm_hours, 2, YELLOW, BLACK, 24);
-    lcd_ShowIntNum(110, 100, alarm_minutes, 2, YELLOW, BLACK, 24);
-}
-uint8_t flash_counter = 0;
-void checkAlarm() {
-    ds3231_ReadTime();
-    // Check if it's time for the alarm to trigger
-    if (ds3231_hours == alarm_hours && ds3231_min == alarm_minutes) {
-        flash_counter++;  // Increment the flash counter every time checkAlarm is called
-        // Flash red screen every 5 seconds
-        if (flash_counter >= 20) {
-            lcd_Fill(0, 0, 240, 320, RED);  // Flash red screen
-            flash_counter = 0;  // Reset the counter after flashing
-            if(flash_counter == 0){
-                    lcd_Clear(BLACK);
-            }
-        }
-    } else {
-        flash_counter = 0;  // Reset counter if not in alarm time
-    }
-}
-void resendRequest() {
-    switch (adjust_part) {
-        case 0: HAL_UART_Transmit(&huart1, (uint8_t *)"Request Hour\n", 13, 10); break;
-        case 1: HAL_UART_Transmit(&huart1, (uint8_t *)"Request Min\n", 12, 10); break;
-        case 2: HAL_UART_Transmit(&huart1, (uint8_t *)"Request Sec\n", 12, 10); break;
-    }
-}
-void adjustTimeRS232(void){
-        counter_blink = (counter_blink + 1)%10;
-        timeout_counter = (timeout_counter + 1)%TIMEOUT;
-            if (isButtonDown()) {
-                adjust_part = (adjust_part + 1) % 3;  // Rotate through hours, minutes, seconds
-                if (adjust_part == 0) {
-                        ds3231_Write(ADDRESS_HOUR, ds3231_hours);
-                                ds3231_Write(ADDRESS_MIN, ds3231_min);
-                                ds3231_Write(ADDRESS_SEC, ds3231_sec);
-                    current_mode = DISPLAY_MODE;
-                    lcd_Clear(BLACK);
-                }
-            }
-            if (data_available_flag) {
-                data_available_flag = 0;
-                ProcessRingBufferData();
-            }
-            if (timeout_counter ==0) {  // 5 seconds elapsed
-                if (attempt_count < MAX_ATTEMPTS) {
-                    resendRequest();
-                    timeout_counter = 0;  // Reset counter after resend
-                    attempt_count++;
-                }
-                else{
-                    current_mode = ADJUST_RS232_Mode_ERROR;
-                    lcd_Clear(BLACK);
-                    error_display_counter = 0;
-                }
-            }
-            //Blink with 0.5 second
-            if (adjust_part == 0) {
-                    if(counter_blink ==0 &&blink_flag ==0)
-                    {
-                            displayTime();
-                            lcd_ShowIntNum(70, 100, ds3231_hours, 2, GREEN, BLACK, 24);
-                            blink_flag =1;
-                    }
-                    else if (counter_blink ==0 &&blink_flag ==1){
-                            displayTime();
-                            lcd_ShowIntNum(70, 100, ds3231_hours, 2, BLACK, BLACK, 24);
-                            blink_flag =0;
-                    }
-            }
-            else if (adjust_part == 1) {
-                    if(counter_blink ==0 &&blink_flag ==0)
-                    {
-                            displayTime();
-                            lcd_ShowIntNum(110, 100, ds3231_min, 2, GREEN, BLACK, 24);
-                            blink_flag =1;
-                    }
-                    else if (counter_blink ==0 &&blink_flag ==1){
-                            displayTime();
-                            lcd_ShowIntNum(110, 100, ds3231_min, 2, BLACK, BLACK, 24);
-                            blink_flag =0;
-                    }
-            }
-            else if (adjust_part == 2) {
-                    if(counter_blink ==0 &&blink_flag ==0)
-                    {
-                            displayTime();
-                            lcd_ShowIntNum(150, 100, ds3231_sec, 2, GREEN, BLACK, 24);
-                            blink_flag =1;
-                    }
-                    else if(counter_blink ==0 &&blink_flag ==1){
-                            displayTime();
-                            lcd_ShowIntNum(150, 100, ds3231_sec, 2, BLACK, BLACK, 24);
-                            blink_flag =0;
-                    }
-            }
-}
-void ProcessRingBufferData() {
-    while (tail != head) {
-        uint8_t data = ring_buffer[tail];
-        tail = (tail + 1) % RING_BUFFER_SIZE;
-        if (data >= '0' && data <= '9') {
-            temp_value = temp_value * 10 + (data - '0');
-            digit_count++;
-            if (digit_count == 2 || (adjust_part == 0 && temp_value > 2)) {
-                switch (adjust_part) {
-                    case 0:
-                        ds3231_hours = temp_value % 24;
-                        HAL_UART_Transmit(&huart1, (uint8_t *)"Hour Set\n", 9, 10);
-                        break;
-                    case 1:
-                        ds3231_min = temp_value % 60;
-                        HAL_UART_Transmit(&huart1, (uint8_t *)"Minute Set\n", 11, 10);
-                        break;
-                    case 2:
-                        ds3231_sec = temp_value % 60;
-                        HAL_UART_Transmit(&huart1, (uint8_t *)"Second Set\n", 11, 10);
-                        break;
-                }
-                // Reset temporary variables on valid data
-                attempt_count = 0;
-                timeout_counter = 0;
-                request_sent = 0;
-                temp_value = 0;
-                digit_count = 0;
-                // Move to the next part
-                adjust_part = (adjust_part + 1) % 3;
-                // If finished adjusting all parts, save and exit
-                if (adjust_part == 0) {
-                    ds3231_Write(ADDRESS_HOUR, ds3231_hours);
-                    ds3231_Write(ADDRESS_MIN, ds3231_min);
-                    ds3231_Write(ADDRESS_SEC, ds3231_sec);
-                    current_mode = DISPLAY_MODE;
-                    lcd_Clear(BLACK);
-                    HAL_UART_Transmit(&huart1, (uint8_t *)"Time Adjusted\n", 14, 10);
-                }
-            }
-        }
-    }
+
+void test_Buzzer(){
+	if(isButtonUp()){
+		buzzer_SetVolume(50);
+	}
+
+	if(isButtonDown()){
+		buzzer_SetVolume(0);
+	}
+
+	if(isButtonRight()){
+		buzzer_SetVolume(25);
+	}
+
 }
 /* USER CODE END 4 */
 
