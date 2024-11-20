@@ -176,12 +176,14 @@ void SystemClock_Config(void)
 
 /* USER CODE BEGIN 4 */
 void system_init(){
-	  timer_init();
-	  button_init();
-	  lcd_init();
-	  sensor_init();
-	  buzzer_init();
-	  setTimer2(50);
+    timer_init();             // Khởi tạo Timer
+    button_init();            // Khởi tạo nút nhấn
+    lcd_init();               // Khởi tạo LCD
+    sensor_init();            // Khởi tạo cảm biến
+    buzzer_init();            // Khởi tạo Buzzer
+    uart_init();              // Khởi tạo UART
+    ds3231_init();            // Khởi tạo RTC
+    setTimer2(50);            // Chu kỳ hệ thống 50ms
 }
 
 uint8_t count_led_debug = 0;
@@ -219,22 +221,52 @@ uint8_t isButtonRight()
 
 uint8_t count_adc = 0;
 
-void test_Adc(){
-	count_adc = (count_adc + 1)%20;
-	if(count_adc == 0){
-		sensor_Read();
-		lcd_ShowStr(10, 100, "Voltage:", RED, BLACK, 16, 0);
-		lcd_ShowFloatNum(130, 100,sensor_GetVoltage(), 4, RED, BLACK, 16);
-		lcd_ShowStr(10, 120, "Current:", RED, BLACK, 16, 0);
-		lcd_ShowFloatNum(130, 120,sensor_GetCurrent(), 4, RED, BLACK, 16);
-		lcd_ShowStr(10, 140, "Light:", RED, BLACK, 16, 0);
-		lcd_ShowIntNum(130, 140, sensor_GetLight(), 4, RED, BLACK, 16);
-		lcd_ShowStr(10, 160, "Potentiometer:", RED, BLACK, 16, 0);
-		lcd_ShowIntNum(130, 160, sensor_GetPotentiometer(), 4, RED, BLACK, 16);
-		lcd_ShowStr(10, 180, "Temperature:", RED, BLACK, 16, 0);
-		lcd_ShowFloatNum(130, 180,sensor_GetTemperature(), 4, RED, BLACK, 16);
-	}
+void test_Adc() {
+    count_adc = (count_adc + 1) % 20;
+    if (count_adc == 0) {
+        sensor_Read();
+
+        // Đọc dữ liệu từ cảm biến
+        float voltage = sensor_GetVoltage();
+        float current = sensor_GetCurrent();
+        float power = voltage * current; // Tính công suất tiêu thụ
+        uint16_t light = sensor_GetLight();
+        uint16_t humidity_adc = sensor_GetPotentiometer();
+        float temperature = sensor_GetTemperature();
+
+        // Quy đổi độ ẩm từ ADC sang %
+        uint16_t humidity_percent = (humidity_adc * 100) / 4095;
+
+        // Phân loại ánh sáng
+        const char* light_str = (light > 2000) ? "Strong" : "Weak";
+
+        // Hiển thị thông số lên LCD
+        lcd_ShowStr(10, 100, "Voltage (V):", RED, BLACK, 16, 0);
+        lcd_ShowFloatNum(150, 100, voltage, 2, RED, BLACK, 16);
+
+        lcd_ShowStr(10, 120, "Current (mA):", RED, BLACK, 16, 0);
+        lcd_ShowFloatNum(150, 120, current, 2, RED, BLACK, 16);
+
+        lcd_ShowStr(10, 140, "Power (mW):", RED, BLACK, 16, 0);
+        lcd_ShowFloatNum(150, 140, power, 2, RED, BLACK, 16);
+
+        lcd_ShowStr(10, 160, "Light:", RED, BLACK, 16, 0);
+        lcd_ShowStr(150, 160, light_str, RED, BLACK, 16, 0);
+
+        lcd_ShowStr(10, 180, "Humidity (%):", RED, BLACK, 16, 0);
+        lcd_ShowIntNum(150, 180, humidity_percent, 4, RED, BLACK, 16);
+
+        lcd_ShowStr(10, 200, "Temp (C):", RED, BLACK, 16, 0);
+        lcd_ShowFloatNum(150, 200, temperature, 2, RED, BLACK, 16);
+
+        // Hiển thị thời gian
+        char time_str[10];
+        ds3231_GetTime(time_str);
+        lcd_ShowStr(10, 220, "Time:", RED, BLACK, 16, 0);
+        lcd_ShowStr(150, 220, time_str, RED, BLACK, 16);
+    }
 }
+
 
 void test_Buzzer(){
 	if(isButtonUp()){
