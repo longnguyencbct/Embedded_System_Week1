@@ -124,7 +124,7 @@ int main(void)
 	  flag_timer2 = 0;
 	  button_Scan();
 	  test_LedDebug();
-	  test_Adc();
+	  test_Adc_Uart();
 	  test_Buzzer();
     /* USER CODE END WHILE */
 
@@ -184,7 +184,7 @@ void system_init(){
     lcd_init();               // Khởi tạo LCD
     sensor_init();            // Khởi tạo cảm biến
     buzzer_init();            // Khởi tạo Buzzer
-    uart_init_rs232();              // Khởi tạo UART
+    uart_init_rs232();        // Khởi tạo UART
     ds3231_init();            // Khởi tạo RTC
     setTimer2(50);            // Chu kỳ hệ thống 50ms
 }
@@ -224,54 +224,72 @@ uint8_t isButtonRight()
 
 uint8_t count_adc = 0;
 
-void test_Adc() {
+void test_Adc_Uart() {
     count_adc = (count_adc + 1) % 20;
     if (count_adc == 0) {
-		sensor_Read();  // �?�?c dữ liệu từ cảm biến
+        sensor_Read();  // Đọc dữ liệu từ cảm biến
 
-		// �?iện áp, dòng điện, công suất tiêu thụ
-		float voltage = sensor_GetVoltage();
-		float current = sensor_GetCurrent();
-		float power = voltage * current;
+        // Điện áp, dòng điện, công suất tiêu thụ
+        float voltage = sensor_GetVoltage();
+        float current = sensor_GetCurrent();
+        float power = voltage * current;
 
-		// �?ộ sáng
-		uint16_t light = sensor_GetLight();
-		const char *light_status = (light > 2000) ? "Strong" : "Weak";
+        // Độ sáng
+        uint16_t light = sensor_GetLight();
+        const char *light_status = (light > 2000) ? "Strong" : "Weak";
 
-		// �?ộ ẩm (tính phần trăm)
-		uint16_t humidity_adc = sensor_GetPotentiometer();
-		uint16_t humidity_percent = (humidity_adc * 100) / 4095;
+        // Độ ẩm (tính phần trăm)
+        uint16_t humidity_adc = sensor_GetPotentiometer();
+        uint16_t humidity_percent = (humidity_adc * 100) / 4095;
 
-		// Nhiệt độ
-		float temperature = sensor_GetTemperature();
+        // Nhiệt độ
+        float temperature = sensor_GetTemperature();
 
-		// Th�?i gian thực
-		char time_str[10];
-		ds3231_GetTime(time_str); // Lấy th�?i gian từ RTC
+        // Thời gian thực
+        char time_str[10];
+        ds3231_GetTime(time_str); // Lấy thời gian từ RTC
 
-		// Hiển thị lên LCD
-		lcd_ShowStr(10, 50, "Voltage (V):", RED, BLACK, 16, 0);
-		lcd_ShowFloatNum(150, 50, voltage, 2, RED, BLACK, 16);
+        // Hiển thị lên LCD
+        lcd_ShowStr(10, 50, "Voltage (V):", RED, BLACK, 16, 0);
+        lcd_ShowFloatNum(150, 50, voltage, 2, RED, BLACK, 16);
 
-		lcd_ShowStr(10, 70, "Current (mA):", RED, BLACK, 16, 0);
-		lcd_ShowFloatNum(150, 70, current, 2, RED, BLACK, 16);
+        lcd_ShowStr(10, 70, "Current (mA):", RED, BLACK, 16, 0);
+        lcd_ShowFloatNum(150, 70, current, 2, RED, BLACK, 16);
 
-		lcd_ShowStr(10, 90, "Power (mW):", RED, BLACK, 16, 0);
-		lcd_ShowFloatNum(150, 90, power, 2, RED, BLACK, 16);
+        lcd_ShowStr(10, 90, "Power (mW):", RED, BLACK, 16, 0);
+        lcd_ShowFloatNum(150, 90, power, 2, RED, BLACK, 16);
 
-		lcd_ShowStr(10, 110, "Light:", RED, BLACK, 16, 0);
-		lcd_ShowStr(150, 110, light_status, RED, BLACK, 16, 0);
+        lcd_ShowStr(10, 110, "Light:", RED, BLACK, 16, 0);
+        lcd_ShowStr(150, 110, light_status, RED, BLACK, 16, 0);
 
-		lcd_ShowStr(10, 130, "Humidity (%):", RED, BLACK, 16, 0);
-		lcd_ShowIntNum(150, 130, humidity_percent, 4, RED, BLACK, 16);
+        lcd_ShowStr(10, 130, "Humidity (%):", RED, BLACK, 16, 0);
+        lcd_ShowIntNum(150, 130, humidity_percent, 4, RED, BLACK, 16);
 
-		lcd_ShowStr(10, 150, "Temperature (C):", RED, BLACK, 16, 0);
-		lcd_ShowFloatNum(150, 150, temperature, 2, RED, BLACK, 16);
+        lcd_ShowStr(10, 150, "Temperature (C):", RED, BLACK, 16, 0);
+        lcd_ShowFloatNum(150, 150, temperature, 2, RED, BLACK, 16);
 
-		lcd_ShowStr(10, 170, "Time:", RED, BLACK, 16, 0);
-		lcd_ShowStr(150, 170, time_str, RED, BLACK, 16,0);
+        lcd_ShowStr(10, 170, "Time:", RED, BLACK, 16, 0);
+        lcd_ShowStr(150, 170, time_str, RED, BLACK, 16, 0);
+
+        // Gửi dữ liệu qua UART
+        char msg[200];
+        sprintf(msg, "Voltage: %.2f V\nCurrent: %.2f mA\nPower: %.2f mW\nLight: %s\nHumidity: %d %%\nTemperature: %.2f C\nTime: %s\n",
+                voltage, current, power, light_status, humidity_percent, temperature, time_str);
+        uart_Rs232SendString((uint8_t *)msg);
+
+        uart_Rs232SendString((uint8_t *)"-----------------------\n");
+
+        // Kiểm tra ngưỡng độ ẩm và cảnh báo nếu cần
+        if (humidity_percent > 70) {
+            buzzer_SetVolume(50); // Kích hoạt báo động
+            uart_Rs232SendString((uint8_t *)"WARNING: High Humidity!\n");
+        } else {
+            buzzer_SetVolume(0); // Tắt báo động
+        }
     }
 }
+
+
 
 
 
