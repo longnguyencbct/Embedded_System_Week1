@@ -61,7 +61,7 @@ main-build: Bai6_ADC_PWM.elf secondary-outputs
 
 # Tool invocations
 Bai6_ADC_PWM.elf Bai6_ADC_PWM.map: $(OBJS) $(USER_OBJS) C:\D\University\Embedded_Systems\Embedded_System\Real_Lab\week_1\Embedded_System_Week1\Embedded_Lab1_GPIO_Delay\STM32F407ZGTX_FLASH.ld makefile objects.list $(OPTIONAL_TOOL_DEPS)
-	arm-none-eabi-gcc -o "Bai6_ADC_PWM.elf" @"objects.list" $(USER_OBJS) $(LIBS) -mcpu=cortex-m4 -T"C:\D\University\Embedded_Systems\Embedded_System\Real_Lab\week_1\Embedded_System_Week1\Embedded_Lab1_GPIO_Delay\STM32F407ZGTX_FLASH.ld" --specs=nosys.specs -Wl,-Map="Bai6_ADC_PWM.map" -Wl,--gc-sections -static -u _printf_float --specs=nano.specs -mfpu=fpv4-sp-d16 -mfloat-abi=hard -mthumb -Wl,--start-group -lc -lm -Wl,--end-group
+	arm-none-eabi-gcc -o "Bai6_ADC_PWM.elf" @"objects.list" $(USER_OBJS) $(LIBS) -mcpu=cortex-m4 -T"C:\D\University\Embedded_Systems\Embedded_System\Real_Lab\week_1\Embedded_System_Week1\Embedded_Lab1_GPIO_Delay\STM32F407ZGTX_FLASH.ld" --specs=nosys.specs -Wl,-Map="Bai6_ADC_PWM.map" -Wl,--gc-sections -static --specs=nano.specs -mfpu=fpv4-sp-d16 -mfloat-abi=hard -mthumb -Wl,--start-group -lc -lm -Wl,--end-group
 	@echo 'Finished building target: $@'
 	@echo ' '
 

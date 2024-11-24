@@ -45,11 +45,3 @@ void ds3231_ReadTime(){
 	ds3231_month = BCD2DEC(ds3231_buffer[5]);
 	ds3231_year = BCD2DEC(ds3231_buffer[6]);
 }
-
-void ds3231_GetTime(char *time_str) {
-    // Đọc thời gian từ RTC
-    ds3231_ReadTime();
-
-    // Định dạng thời gian thành chuỗi HH:MM:SS
-    sprintf(time_str, "%02d:%02d:%02d", ds3231_hours, ds3231_min, ds3231_sec);
-}

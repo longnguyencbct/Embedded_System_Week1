@@ -16,6 +16,11 @@ uint16_t timer2_MUL = 0;
 
 void timer_init(){
 	HAL_TIM_Base_Start_IT(&htim2);
+	HAL_TIM_Base_Start(&htim1);
+}
+
+void timer_EnableDelayUs(){
+	HAL_TIM_Base_Start(&htim1);
 }
 
 void setTimer2(uint16_t duration){
@@ -36,4 +41,11 @@ void HAL_TIM_PeriodElapsedCallback(TIM_HandleTypeDef *htim){
 		led7_Scan();
 	}
 }
+
+void delay_us (uint16_t us)
+{
+	__HAL_TIM_SET_COUNTER(&htim1,0);  // set the counter value a 0
+	while (__HAL_TIM_GET_COUNTER(&htim1) < us);  // wait for the counter to reach the us input in the parameter
+}
+
 
