@@ -5,20 +5,9 @@
  *      Author: HaHuyen
  */
 #include "uart.h"
-#include "ds3231.h"
 
 uint8_t receive_buffer1 = 0;
 uint8_t msg[100];
-
-// Định nghĩa các biến toàn cục
-uint8_t ring_buffer[RING_BUFFER_SIZE] = {0}; // Buffer vòng để lưu dữ liệu nhận
-uint16_t head = 0;                          // Con trỏ đầu của buffer
-uint16_t tail = 0;                          // Con trỏ cuối của buffer
-uint8_t data_available_flag = 0;            // Cờ đánh dấu dữ liệu mới
-
-
-extern uint16_t head, tail;
-extern uint8_t data_available_flag;
 
 void uart_init_rs232(){
 	HAL_UART_Receive_IT(&huart1, &receive_buffer1, 1);
@@ -66,35 +55,15 @@ void uart_Rs232SendNumPercent(uint32_t num)
     uart_Rs232SendString(msg);
 }
 
-void HAL_UART_RxCpltCallback(UART_HandleTypeDef *huart) {
-    if (huart->Instance == USART1) {
-        // Add the received byte to the ring buffer
-        ring_buffer[head] = receive_buffer1;
-        head = (head + 1) % RING_BUFFER_SIZE;
+void HAL_UART_RxCpltCallback(UART_HandleTypeDef *huart){
+	if(huart->Instance == USART1){
+		// rs232 isr
+		// can be modified
+		HAL_UART_Transmit(&huart1, &receive_buffer1, 1, 10);
 
-        // Check if the buffer is full (head == tail indicates overflow)
-        if (head == tail) {
-            // Handle overflow: adjust tail to discard oldest data
-            tail = (tail + 1) % RING_BUFFER_SIZE;
-        }
 
-        // Set flag to indicate new data is available for processing
-        data_available_flag = 1;
-        // Re-enable UART interrupt for the next byte
-        HAL_UART_Receive_IT(&huart1, &receive_buffer1, 1);
-    	}
+		// turn on the receice interrupt
+		HAL_UART_Receive_IT(&huart1, &receive_buffer1, 1);
+	}
 }
-
-//void HAL_UART_RxCpltCallback(UART_HandleTypeDef *huart){
-//	if(huart->Instance == USART1){
-//		// rs232 isr
-//		// can be modified
-//		HAL_UART_Transmit(&huart1, &receive_buffer1, 1, 10);
-//
-//
-//		// turn on the receice interrupt
-//		HAL_UART_Receive_IT(&huart1, &receive_buffer1, 1);
-//	}
-//}
-
 

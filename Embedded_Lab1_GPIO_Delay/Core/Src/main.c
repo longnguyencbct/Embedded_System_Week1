@@ -24,9 +24,10 @@
 #include "i2c.h"
 #include "spi.h"
 #include "tim.h"
+#include "usart.h"
 #include "gpio.h"
 #include "fsmc.h"
-
+#include "uart.h"
 /* Private includes ----------------------------------------------------------*/
 /* USER CODE BEGIN Includes */
 #include "software_timer.h"
@@ -59,9 +60,19 @@
 /* USER CODE BEGIN PV */
 #define INIT 0
 #define DRAW 1
-#define CLEAR 2
 
-int draw_Status = INIT;
+// Định nghĩa các hướng
+#define UP 0
+#define DOWN 1
+#define LEFT 2
+#define RIGHT 3
+
+// Biến trạng thái của game
+int game_state = INIT;
+
+// Biến lưu hướng hiện tại
+int direction = UP; // Mặc định hướng ban đầu là UP
+
 /* USER CODE END PV */
 
 /* Private function prototypes -----------------------------------------------*/
@@ -71,6 +82,7 @@ void system_init();
 void test_LedDebug();
 void touchProcess();
 uint8_t isButtonClear();
+uint8_t isTouchedStartButton();
 /* USER CODE END PFP */
 
 /* Private user code ---------------------------------------------------------*/
@@ -106,38 +118,50 @@ int main(void)
 
   /* Initialize all configured peripherals */
   MX_GPIO_Init();
-  MX_TIM2_Init();
+  MX_DMA_Init();
   MX_SPI1_Init();
   MX_FSMC_Init();
   MX_I2C1_Init();
   MX_TIM13_Init();
-  MX_DMA_Init();
+  MX_TIM2_Init();
   MX_ADC1_Init();
   MX_TIM1_Init();
+  MX_USART1_UART_Init();
   /* USER CODE BEGIN 2 */
   system_init();
   /* USER CODE END 2 */
 
   /* Infinite loop */
   /* USER CODE BEGIN WHILE */
- touch_Adjust();
- lcd_Clear(BLACK);
+  // Hiển thị giao diện khởi đầu
+  drawStartScreen();//test
  while (1)
   {
-	  //scan touch screen
-	  touch_Scan();
-	  //check if touch screen is touched
-	  if(touch_IsTouched() && draw_Status == DRAW){
-            //draw a point at the touch position
-		  lcd_DrawPoint(touch_GetX(), touch_GetY(), RED);
-	  }
-	  // 50ms task
-	  if(flag_timer2 == 1){
-		  flag_timer2 = 0;
-		  touchProcess();
-		  test_LedDebug();
-	  }
+     touch_Scan(); // Quét màn hình cảm ứng
+     // Nếu cờ timer đã bật
+     if (flag_timer2) {
+         flag_timer2 = 0;
 
+         // Kiểm tra trạng thái game
+         switch (game_state) {
+             case INIT: {
+                 // Kiểm tra xem có nhấn nút "Start" không
+                 if (isTouchedStartButton()) {
+                     lcd_Clear(BLACK); // Xóa màn hình
+                     drawGameFrame(); // Vẽ khung trò chơi
+                     game_state = DRAW; // Chuyển sang trạng thái chơi
+                 }
+                 break;
+             }
+             case DRAW: {
+                 // Xử lý các nút điều khiển
+                 handleNavigationButtons();
+                 break;
+             }
+             default:
+                 break;
+         }
+     }
     /* USER CODE END WHILE */
 
     /* USER CODE BEGIN 3 */
@@ -207,36 +231,71 @@ void test_LedDebug(){
 	}
 }
 
-uint8_t isButtonClear(){
-	if(!touch_IsTouched()) return 0;
-	return touch_GetX() > 60 && touch_GetX() < 180 && touch_GetY() > 10 && touch_GetY() < 60;
+uint8_t isTouchedStartButton() {
+    if (!touch_IsTouched()) return 0; // Nếu không chạm, trả về 0
+    uint16_t x = touch_GetX();
+    uint16_t y = touch_GetY();
+    return (x >= 125 && x <= 225 && y >= 210 && y <= 240); // Trả về 1 nếu nằm trong tọa độ nút "Start"
 }
 
-void touchProcess(){
-	switch (draw_Status) {
-		case INIT:
-                // display blue button
-			lcd_Fill(60, 10, 180, 60, GBLUE);
-			lcd_ShowStr(90, 20, "CLEAR", RED, BLACK, 24, 1);
-			draw_Status = DRAW;
-			break;
-		case DRAW:
-			if(isButtonClear()){
-				draw_Status = CLEAR;
-                    // clear board
-				lcd_Fill(0, 60, 240, 320, BLACK);
-                    // display green button
-				lcd_Fill(60, 10, 180, 60, GREEN);
-				lcd_ShowStr(90, 20, "CLEAR", RED, BLACK, 24, 1);
-			}
-			break;
-		case CLEAR:
-			if(!touch_IsTouched()) draw_Status = INIT;
-			break;
-		default:
-			break;
-	}
+void handleNavigationButtons() {
+    if (!touch_IsTouched()) return;
+    uint16_t x = touch_GetX();
+    uint16_t y = touch_GetY();
+
+    if (x >= 150 && x <= 200 && y >= 215 && y <= 245) {
+        // Nút UP
+        direction = UP;
+    } else if (x >= 150 && x <= 200 && y >= 255 && y <= 285) {
+        // Nút DOWN
+        direction = DOWN;
+    } else if (x >= 100 && x <= 150 && y >= 255 && y <= 285) {
+        // Nút LEFT
+        direction = LEFT;
+    } else if (x >= 200 && x <= 250 && y >= 255 && y <= 285) {
+        // Nút RIGHT
+        direction = RIGHT;
+    }
 }
+
+
+
+void drawStartButton() {
+    // Vẽ nút "Start" với màu xanh dương nhạt
+    lcd_Fill(125, 210, 225, 240, GBLUE);
+    // Hiển thị chữ "Start" với màu trắng
+    lcd_ShowStr(150, 220, "Start", WHITE, GBLUE, 24, 1);
+}
+
+void drawGameFrame() {
+    // Vẽ khung trò chơi với màu trắng
+    lcd_DrawRectangle(75, 10, 275, 210, WHITE);
+}
+
+void drawNavigationButtons() {
+    // Nút UP
+    lcd_Fill(150, 215, 200, 245, GBLUE);
+    lcd_ShowStr(165, 225, "UP", WHITE, GBLUE, 16, 1);
+    // Nút DOWN
+    lcd_Fill(150, 255, 200, 285, GBLUE);
+    lcd_ShowStr(155, 265, "DOWN", WHITE, GBLUE, 16, 1);
+    // Nút LEFT
+    lcd_Fill(100, 255, 150, 285, GBLUE);
+    lcd_ShowStr(115, 265, "LEFT", WHITE, GBLUE, 16, 1);
+    // Nút RIGHT
+    lcd_Fill(200, 255, 250, 285, GBLUE);
+    lcd_ShowStr(215, 265, "RIGHT", WHITE, GBLUE, 16, 1);
+}
+
+void drawStartScreen() {
+    lcd_Clear(BLACK); // Xóa màn hình với màu đen
+    drawGameFrame(); // Vẽ khung trò chơi
+    drawNavigationButtons(); // Vẽ các nút điều hướng
+    drawStartButton(); // Vẽ nút Start
+}
+
+
+
 /* USER CODE END 4 */
 
 /**
