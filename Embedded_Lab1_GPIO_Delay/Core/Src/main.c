@@ -110,6 +110,12 @@ int buttonStartY1 = 95;
 int buttonStartX2 = 170;
 int buttonStartY2 = 125;
 
+int buttonReturnX1 = 80;
+int buttonReturnY1 = 200;
+int buttonReturnX2 = 160;
+int buttonReturnY2 = 230;
+
+
 /* USER CODE END PV */
 
 /* Private function prototypes -----------------------------------------------*/
@@ -122,6 +128,8 @@ void updateGame();
 void drawGameOverScreen();
 uint8_t isButtonClear();
 uint8_t isTouchedStartButton();
+uint8_t isTouchedReturnButton();
+uint8_t isHeadOnFood(Point);
 /* USER CODE END PFP */
 
 /* Private user code ---------------------------------------------------------*/
@@ -181,48 +189,24 @@ int main(void)
   {
 	touch_Scan(); // Quét màn hình cảm ứng
 	if (flag_timer2) {
-		lcd_Clear(BLACK);
-		if (HAL_GPIO_ReadPin(T_PEN_GPIO_Port, T_PEN_Pin) == GPIO_PIN_RESET) {
-				    lcd_ShowStr(10, 50, "Screen Touched", WHITE, BLACK, 16, 1);
-				    uint16_t raw_x = TP_Read_AD(CMD_RDX);
-				    uint16_t raw_y = TP_Read_AD(CMD_RDY);
-				    char debug_msg[50];
-				    sprintf(debug_msg, "Raw X: %d, Raw Y: %d", raw_x, raw_y);
-				    lcd_ShowStr(10, 70, debug_msg, WHITE, BLACK, 16, 1);
-				} else {
-				    lcd_ShowStr(10, 50, "No Touch", WHITE, BLACK, 16, 1);
-				}
-		if (touch_IsTouched()) {
-			uint16_t x = tp_dev.x[0];
-			uint16_t y = tp_dev.y[0];
-			lcd_ShowStr(10, 10, "Touched", WHITE, BLACK, 16, 1);
-			char buffer[20];
-			sprintf(buffer, "X:%d Y:%d", x, y);
-			lcd_ShowStr(10, 30, buffer, WHITE, BLACK, 16, 1);
-		}
-
-
-
-
-
-
-
-
 		flag_timer2 = 0;
 
 	  switch (game_state) {
-		case INIT: {
-		  if (isTouchedStartButton()) {
-			  initializeGame(); // Khởi tạo trò chơi
-			  lcd_Clear(BLACK);
-			  drawGameFrame();
-			  drawSnakeAndFood(); // Vẽ rắn và thức ăn
-			  game_state = PLAYING;
-		  }
-		  break;
-		}
+	  case INIT: {
+	      drawStartScreen(); // Ensure the start screen, including buttons, is drawn
+	      if (isTouchedStartButton()) {
+	          initializeGame();        // Khởi tạo trò chơi
+	          lcd_Clear(BLACK);        // Clear the screen for PLAYING state
+	          drawGameFrame();         // Draw game frame
+	          drawSnakeAndFood();      // Vẽ rắn và thức ăn
+	          game_state = PLAYING;    // Switch to PLAYING state
+	      }
+	      break;
+	  }
+
 
 		case PLAYING: {
+			drawPlayScreen();
 		  handleNavigationButtons(); // Xử lý đi�?u khiển
 		  updateSnake();             // Cập nhật trạng thái rắn
 		  drawSnakeAndFood();        // Vẽ lại rắn và thức ăn
@@ -230,13 +214,17 @@ int main(void)
 		}
 
 		case GAME_OVER: {
-		  drawGameOverScreen(); // Hiển thị giao diện Game Over
-		  if (isTouchedStartButton()) {
-			game_state = INIT; // Quay v�? trạng thái khởi đầu
-			drawStartScreen();
-		  }
-		  break;
+		    drawGameOverScreen(); // Display the Game Over screen
+		    if (isTouchedStartButton()) {
+		        initializeGame();  // Restart the game
+		        game_state = PLAYING; // Switch to the PLAYING state
+		    } else if (isTouchedReturnButton()) {
+		        game_state = INIT; // Transition back to INIT state
+		        drawStartScreen(); // Display the start screen
+		    }
+		    break;
 		}
+
 
 		default:
 			game_state = INIT; // Quay v�? trạng thái khởi đầu
@@ -302,7 +290,7 @@ void system_init(){
 	  button_init();
 	  lcd_init();
 	  touch_init();
-	  setTimer2(50);
+	  setTimer2(500);
 }
 
 uint8_t count_led_debug = 0;
@@ -328,11 +316,18 @@ void initializeGame() {
 }
 
 void generateRandomFood() {
+    int min_x = gameFrameX1;
+    int min_y = gameFrameY1;
+    int max_x = gameFrameX2 - 5;  // Account for food size
+    int max_y = gameFrameY2 - 5;  // Account for food size
+
     do {
-        food.x = rand() % 20; // Khung 20x20
-        food.y = rand() % 20;
-    } while (isFoodOnSnake(food));
+        food.x = (rand() % ((max_x - min_x) / 5)) * 5 + min_x; // Snap to 5-pixel grid
+        food.y = (rand() % ((max_y - min_y) / 5)) * 5 + min_y; // Snap to 5-pixel grid
+    } while (isFoodOnSnake(food)); // Ensure no overlap with the snake
 }
+
+
 
 
 int isFoodOnSnake(Point food) {
@@ -345,47 +340,63 @@ int isFoodOnSnake(Point food) {
 }
 
 void updateSnake() {
-	// Tính toán đầu mới dựa trên hướng
-	Point newHead = snake[0];
-	switch (direction) {
-		case UP:    newHead.y--; break;
-		case DOWN:  newHead.y++; break;
-		case LEFT:  newHead.x--; break;
-		case RIGHT: newHead.x++; break;
-	}
+    // Calculate the new head position based on the direction
+    Point newHead = snake[0];
+    switch (direction) {
+        case UP:    newHead.y -= 5; break;
+        case DOWN:  newHead.y += 5; break;
+        case LEFT:  newHead.x -= 5; break;
+        case RIGHT: newHead.x += 5; break;
+    }
 
-	// Kiểm tra va chạm tư�?ng hoặc thân
-	if (newHead.x < 0 || newHead.y < 0 || newHead.x >= 20 || newHead.y >= 20 || isFoodOnSnake(newHead)) {
-		game_state = GAME_OVER;
-		return;
-	}
+    // Check for collision with the frame boundaries or self
+    if (newHead.x < gameFrameX1 || newHead.y < gameFrameY1 ||
+        newHead.x >= gameFrameX2 || newHead.y >= gameFrameY2 || isFoodOnSnake(newHead)) {
+        game_state = GAME_OVER;
+        return;
+    }
 
-	// Thêm đầu mới
-	for (int i = snake_length; i > 0; i--) {
-		snake[i] = snake[i - 1];
-	}
-	snake[0] = newHead;
+    // Shift the snake's body to make room for the new head
+    for (int i = snake_length; i > 0; i--) {
+        snake[i] = snake[i - 1];
+    }
+    snake[0] = newHead;
 
-	// Kiểm tra ăn thức ăn
-	if (newHead.x == food.x && newHead.y == food.y) {
-		snake_length++; // Tăng chi�?u dài rắn
-		generateRandomFood(); // Sinh thức ăn mới
-	} else {
-		// Nếu không ăn thức ăn, xóa đuôi
-		snake[snake_length] = (Point){-1, -1}; // �?ánh dấu phần tử trống
-	}
+    // Check if the snake's head overlaps with the food
+    if (isHeadOnFood(newHead)) {
+        snake_length++;  // Grow the snake
+        generateRandomFood();  // Place new food
+    } else {
+        // Clear the last segment (snake tail) if no food is eaten
+        snake[snake_length] = (Point){-1, -1};
+    }
 }
+
+
+uint8_t isHeadOnFood(Point head) {
+    // Check if the head overlaps with the food
+    return !(head.x + 5 <= food.x || food.x + 5 <= head.x ||
+             head.y + 5 <= food.y || food.y + 5 <= head.y);
+}
+
 
 
 void drawSnakeAndFood() {
-    // Vẽ rắn
+    // Clear the previous frame inside the game area
+//    lcd_Fill(gameFrameX1, gameFrameY1, gameFrameX2, gameFrameY2, BLACK);
+
+    // Draw the snake
     for (int i = 0; i < snake_length; i++) {
-        lcd_DrawPoint(snake[i].x * 10, snake[i].y * 10, GREEN); // Mỗi ô là 10x10 pixel
+        lcd_Fill(snake[i].x, snake[i].y,
+                 snake[i].x + 5, snake[i].y + 5, GREEN); // Render 5x5 blocks
     }
 
-    // Vẽ thức ăn
-    lcd_DrawPoint(food.x * 10, food.y * 10, RED);
+    // Draw the food
+    lcd_Fill(food.x, food.y,
+             food.x + 5, food.y + 5, RED); // Render 5x5 blocks
 }
+
+
 
 uint8_t isTouchedStartButton() {
     if (!touch_IsTouched()) return 0;
@@ -413,19 +424,37 @@ void handleNavigationButtons() {
     }
 }
 
+uint8_t isTouchedReturnButton() {
+    if (!touch_IsTouched()) return 0; // Check if the screen is touched
+    uint16_t x = touch_GetX();
+    uint16_t y = touch_GetY();
+    return (x >= buttonReturnX1 && x <= buttonReturnX2 && y >= buttonReturnY1 && y <= buttonReturnY2);
+}
+
 
 // Hiển thị màn hình Game Over
 void drawGameOverScreen() {
-    lcd_Clear(BLACK); // Xóa màn hình
-    lcd_ShowStr(100, 100, "GAME OVER", RED, BLACK, 24, 1); // Hiển thị thông báo
-    lcd_ShowStr(80, 150, "Tap Start to retry", WHITE, BLACK, 16, 1); // Thông báo cách chơi lại
+    lcd_Clear(BLACK); // Clear the screen
+    lcd_ShowStr(70, 100, "GAME OVER", RED, BLACK, 24, 1); // Display "Game Over"
+    lcd_ShowStr(50, 150, "Tap Start to retry", WHITE, BLACK, 16, 1); // Retry message
+
+    // Draw the Return button
+    lcd_Fill(buttonReturnX1, buttonReturnY1, buttonReturnX2, buttonReturnY2, GBLUE);
+    lcd_ShowStr(buttonReturnX1 + 10, buttonReturnY1 + 5, "Return", WHITE, GBLUE, 16, 1);
 }
 
+
 void drawStartScreen() {
-    lcd_Clear(BLACK); // Xóa màn hình với màu đen
-    drawGameFrame();  // Vẽ khung trò chơi
-    drawNavigationButtons(); // Vẽ các nút đi�?u hướng
-    drawStartButton(); // Vẽ nút Start
+    lcd_Clear(BLACK);           // Xóa màn hình với màu đen
+    drawGameFrame();            // Vẽ khung trò chơi
+//    drawNavigationButtons();    // Vẽ các nút điều hướng
+    drawStartButton();          // Vẽ nút Start
+}
+
+void drawPlayScreen(){
+    lcd_Clear(BLACK);           // Xóa màn hình với màu đen
+    drawGameFrame();
+	drawNavigationButtons();    // Vẽ các nút điều hướng
 }
 
 void drawStartButton() {
