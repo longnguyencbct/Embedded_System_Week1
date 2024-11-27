@@ -27,7 +27,6 @@
 #include "usart.h"
 #include "gpio.h"
 #include "fsmc.h"
-#include "uart.h"
 
 /* Private includes ----------------------------------------------------------*/
 /* USER CODE BEGIN Includes */
@@ -61,7 +60,7 @@
 float power_samples[100] = {0}; // Mảng lưu giá trị công suất
 uint8_t sampling_period = 1;    // Chu kỳ lấy mẫu (1 giây mặc định)
 uint8_t grid_split =10;
-uint16_t time_range = 100;      // Chiều dài trục OX (100 đơn vị thời gian)
+uint16_t time_range = 100;      // Chi�?u dài trục OX (100 đơn vị th�?i gian)
 float max_power = 300.0;         // Giá trị tối đa trục OY (10 mW mặc định)
 /* USER CODE END PV */
 
@@ -85,6 +84,7 @@ void test_Adc();
   */
 int main(void)
 {
+
   /* USER CODE BEGIN 1 */
 
   /* USER CODE END 1 */
@@ -115,6 +115,7 @@ int main(void)
   MX_TIM2_Init();
   MX_ADC1_Init();
   MX_USART1_UART_Init();
+  MX_USART2_UART_Init();
   /* USER CODE BEGIN 2 */
   system_init();
   /* USER CODE END 2 */
@@ -150,6 +151,7 @@ void SystemClock_Config(void)
   */
   __HAL_RCC_PWR_CLK_ENABLE();
   __HAL_PWR_VOLTAGESCALING_CONFIG(PWR_REGULATOR_VOLTAGE_SCALE1);
+
   /** Initializes the RCC Oscillators according to the specified parameters
   * in the RCC_OscInitTypeDef structure.
   */
@@ -166,6 +168,7 @@ void SystemClock_Config(void)
   {
     Error_Handler();
   }
+
   /** Initializes the CPU, AHB and APB buses clocks
   */
   RCC_ClkInitStruct.ClockType = RCC_CLOCKTYPE_HCLK|RCC_CLOCKTYPE_SYSCLK
@@ -278,9 +281,9 @@ uint8_t count_adc = 0;
 void test_Adc_Uart() {
     count_adc = (count_adc + 1) % 20;
     if (count_adc == 0) {
-        sensor_Read();  // Đọc dữ liệu từ cảm biến
+        sensor_Read();  // �?�?c dữ liệu từ cảm biến
 
-        // Điện áp, dòng điện, công suất tiêu thụ
+        // �?iện áp, dòng điện, công suất tiêu thụ
         float voltage = sensor_GetVoltage();
         float current = ( sensor_GetCurrent());
         int power = (int)(voltage * current);
@@ -288,20 +291,20 @@ void test_Adc_Uart() {
         // Cập nhật biểu đồ trên LCD (vẫn luôn cập nhật)
         plot_power_chart();
 
-        // Độ sáng
+        // �?ộ sáng
         uint16_t light = sensor_GetLight();
         const char *light_status = (light > 2000) ? "Strong" : "Weak";
 
-        // Độ ẩm (tính phần trăm)
+        // �?ộ ẩm (tính phần trăm)
         uint16_t humidity_adc = sensor_GetPotentiometer();
         uint16_t humidity_percent = (humidity_adc * 100) / 4095;
 
         // Nhiệt độ
         float temperature = sensor_GetTemperature();
 
-        // Thời gian thực
+        // Th�?i gian thực
         char time_str[10];
-        ds3231_GetTime(time_str); // Lấy thời gian từ RTC
+        ds3231_GetTime(time_str); // Lấy th�?i gian từ RTC
 
         // Hiển thị lên LCD nếu trạng thái hiển thị bật
         Check_Toggle_LCD_Display();
@@ -359,7 +362,7 @@ void store_power_data(int power) {
 
 int get_digit_count(int number) {
     int count = 0;
-    if (number == 0) return 1; // Trường hợp đặc biệt, số 0 có 1 chữ số
+    if (number == 0) return 1; // Trư�?ng hợp đặc biệt, số 0 có 1 chữ số
     while (number != 0) {
         number /= 10;
         count++;
@@ -372,22 +375,22 @@ void plot_power_chart() {
     // Xóa vùng biểu đồ
     lcd_Fill(10, 10, 210, 210, BLACK);
 
-    // Vẽ grid dọc (OX) theo grid_split
+    // Vẽ grid d�?c (OX) theo grid_split
     for (int i = 0; i <= grid_split; i++) {
-        int x = 10 + (200 * i / grid_split); // Tính tọa độ x dựa trên grid_split
+        int x = 10 + (200 * i / grid_split); // Tính t�?a độ x dựa trên grid_split
         lcd_DrawLine(x, 10, x, 210, LIGHTGRAY);
     }
 
     // Vẽ grid ngang (OY) theo grid_split
     for (int i = 0; i <= grid_split; i++) {
-        int y = 210 - (200 * i / grid_split); // Tính tọa độ y dựa trên grid_split
+        int y = 210 - (200 * i / grid_split); // Tính t�?a độ y dựa trên grid_split
         lcd_DrawLine(10, y, 210, y, LIGHTGRAY);
     }
 
     // Vẽ các nhãn trục OY
     for (int i = 0; i <= grid_split; i++) {
         int label = (int)(i * max_power / grid_split); // Giá trị nhãn trục OY
-        int y = 210 - (200 * i / grid_split);         // Tọa độ y
+        int y = 210 - (200 * i / grid_split);         // T�?a độ y
         int len = get_digit_count(label);             // Số chữ số của `label`
         lcd_ShowIntNum(0, y, label, len, WHITE, BLACK, 16);
     }
@@ -395,26 +398,26 @@ void plot_power_chart() {
     // Vẽ các nhãn trục OX
     for (int i = 0; i <= grid_split; i++) {
         int label = (int)(time_range - (i * time_range / grid_split)); // Giá trị nhãn trục OX
-        int x = 10 + (200 * i / grid_split);                          // Tính tọa độ x
+        int x = 10 + (200 * i / grid_split);                          // Tính t�?a độ x
         int len = get_digit_count(label);                             // Số chữ số của `label`
         lcd_ShowIntNum(x, 215, label, len, WHITE, BLACK, 16);
     }
 
-    // Vẽ đường biểu diễn công suất
+    // Vẽ đư�?ng biểu diễn công suất
     for (int i = 0; i < time_range - 1; i++) {
-        // Chuyển đổi giá trị từ `power_samples` thành tọa độ pixel
+        // Chuyển đổi giá trị từ `power_samples` thành t�?a độ pixel
         int x1 = 10 + (200 * i / time_range);
         int y1 = 210 - (int)((200 * power_samples[i]) / max_power);
         int x2 = 10 + (200 * (i + 1) / time_range);
         int y2 = 210 - (int)((200 * power_samples[i + 1]) / max_power);
 
-        // Đảm bảo tọa độ y1 và y2 nằm trong phạm vi hợp lệ
+        // �?ảm bảo t�?a độ y1 và y2 nằm trong phạm vi hợp lệ
         if (y1 < 10) y1 = 10;
         if (y1 > 210) y1 = 210;
         if (y2 < 10) y2 = 10;
         if (y2 > 210) y2 = 210;
 
-        // Vẽ đường nối giữa các điểm
+        // Vẽ đư�?ng nối giữa các điểm
         lcd_DrawLine(x1, y1, x2, y2, RED);
     }
 }
@@ -478,5 +481,3 @@ void assert_failed(uint8_t *file, uint32_t line)
   /* USER CODE END 6 */
 }
 #endif /* USE_FULL_ASSERT */
-
-/************************ (C) COPYRIGHT STMicroelectronics *****END OF FILE****/
