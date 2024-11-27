@@ -40,5 +40,5 @@ void touch_Scan(void);
 uint8_t touch_IsTouched();
 uint16_t touch_GetX();
 uint16_t touch_GetY();
-
+extern uint16_t TP_Read_AD(uint8_t);
 #endif /* INC_TOUCH_H_ */

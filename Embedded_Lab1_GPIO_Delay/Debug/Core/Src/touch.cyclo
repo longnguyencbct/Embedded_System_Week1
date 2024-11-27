@@ -1,5 +1,5 @@
 ../Core/Src/touch.c:47:13:TP_Write_Byte	3
-../Core/Src/touch.c:61:17:TP_Read_AD	3
+../Core/Src/touch.c:61:10:TP_Read_AD	3
 ../Core/Src/touch.c:90:17:TP_Read_XOY	6
 ../Core/Src/touch.c:115:16:TP_Read_XY	1
 ../Core/Src/touch.c:126:16:TP_Read_XY2	11

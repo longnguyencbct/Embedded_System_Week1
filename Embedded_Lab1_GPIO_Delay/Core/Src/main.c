@@ -27,7 +27,7 @@
 #include "usart.h"
 #include "gpio.h"
 #include "fsmc.h"
-#include "uart.h"
+
 /* Private includes ----------------------------------------------------------*/
 /* USER CODE BEGIN Includes */
 #include "software_timer.h"
@@ -69,7 +69,7 @@
 
 int game_state = INIT;
 int direction = UP; // Mặc định hướng ban đầu là UP
-int snake_length = 3; // Độ dài mặc định của rắn
+int snake_length = 3; // �?ộ dài mặc định của rắn
 
 typedef struct {
     int x;
@@ -77,7 +77,38 @@ typedef struct {
 } Point;
 
 Point snake[100]; // Tối đa 100 phần tử rắn
-Point food;       // Tọa độ thức ăn
+Point food;       // T�?a độ thức ăn
+
+int gameFrameX1 = 10;
+int gameFrameY1 = 0;
+int gameFrameX2 = 230;
+int gameFrameY2 = 220;
+
+// T�?a độ nút
+int buttonUpX1 = 100;
+int buttonUpY1 = 230;
+int buttonUpX2 = 150;
+int buttonUpY2 = 260;
+
+int buttonDownX1 = 100;
+int buttonDownY1 = 290;
+int buttonDownX2 = 150;
+int buttonDownY2 = 320;
+
+int buttonLeftX1 = 50;
+int buttonLeftY1 = 260;
+int buttonLeftX2 = 100;
+int buttonLeftY2 = 290;
+
+int buttonRightX1 = 150;
+int buttonRightY1 = 260;
+int buttonRightX2 = 200;
+int buttonRightY2 = 290;
+
+int buttonStartX1 = 70;
+int buttonStartY1 = 95;
+int buttonStartX2 = 170;
+int buttonStartY2 = 125;
 
 /* USER CODE END PV */
 
@@ -104,6 +135,7 @@ uint8_t isTouchedStartButton();
   */
 int main(void)
 {
+
   /* USER CODE BEGIN 1 */
 
   /* USER CODE END 1 */
@@ -143,11 +175,40 @@ int main(void)
   /* USER CODE BEGIN WHILE */
   // Hiển thị giao diện khởi đầu
   drawStartScreen();//test
+  uint8_t CMD_RDX=0XD0;
+  uint8_t CMD_RDY=0X90;
  while (1)
   {
 	touch_Scan(); // Quét màn hình cảm ứng
 	if (flag_timer2) {
-	  flag_timer2 = 0;
+		lcd_Clear(BLACK);
+		if (HAL_GPIO_ReadPin(T_PEN_GPIO_Port, T_PEN_Pin) == GPIO_PIN_RESET) {
+				    lcd_ShowStr(10, 50, "Screen Touched", WHITE, BLACK, 16, 1);
+				    uint16_t raw_x = TP_Read_AD(CMD_RDX);
+				    uint16_t raw_y = TP_Read_AD(CMD_RDY);
+				    char debug_msg[50];
+				    sprintf(debug_msg, "Raw X: %d, Raw Y: %d", raw_x, raw_y);
+				    lcd_ShowStr(10, 70, debug_msg, WHITE, BLACK, 16, 1);
+				} else {
+				    lcd_ShowStr(10, 50, "No Touch", WHITE, BLACK, 16, 1);
+				}
+		if (touch_IsTouched()) {
+			uint16_t x = tp_dev.x[0];
+			uint16_t y = tp_dev.y[0];
+			lcd_ShowStr(10, 10, "Touched", WHITE, BLACK, 16, 1);
+			char buffer[20];
+			sprintf(buffer, "X:%d Y:%d", x, y);
+			lcd_ShowStr(10, 30, buffer, WHITE, BLACK, 16, 1);
+		}
+
+
+
+
+
+
+
+
+		flag_timer2 = 0;
 
 	  switch (game_state) {
 		case INIT: {
@@ -162,7 +223,7 @@ int main(void)
 		}
 
 		case PLAYING: {
-		  handleNavigationButtons(); // Xử lý điều khiển
+		  handleNavigationButtons(); // Xử lý đi�?u khiển
 		  updateSnake();             // Cập nhật trạng thái rắn
 		  drawSnakeAndFood();        // Vẽ lại rắn và thức ăn
 		  break;
@@ -171,20 +232,20 @@ int main(void)
 		case GAME_OVER: {
 		  drawGameOverScreen(); // Hiển thị giao diện Game Over
 		  if (isTouchedStartButton()) {
-			game_state = INIT; // Quay về trạng thái khởi đầu
+			game_state = INIT; // Quay v�? trạng thái khởi đầu
 			drawStartScreen();
 		  }
 		  break;
 		}
 
 		default:
-			game_state = INIT; // Quay về trạng thái khởi đầu
+			game_state = INIT; // Quay v�? trạng thái khởi đầu
 		  break;
 	  }
 	}
-	/* USER CODE END WHILE */
+    /* USER CODE END WHILE */
 
-	/* USER CODE BEGIN 3 */
+    /* USER CODE BEGIN 3 */
   }
   /* USER CODE END 3 */
 }
@@ -202,6 +263,7 @@ void SystemClock_Config(void)
   */
   __HAL_RCC_PWR_CLK_ENABLE();
   __HAL_PWR_VOLTAGESCALING_CONFIG(PWR_REGULATOR_VOLTAGE_SCALE1);
+
   /** Initializes the RCC Oscillators according to the specified parameters
   * in the RCC_OscInitTypeDef structure.
   */
@@ -216,12 +278,13 @@ void SystemClock_Config(void)
   RCC_OscInitStruct.PLL.PLLQ = 4;
   if (HAL_RCC_OscConfig(&RCC_OscInitStruct) != HAL_OK)
   {
-	Error_Handler();
+    Error_Handler();
   }
+
   /** Initializes the CPU, AHB and APB buses clocks
   */
   RCC_ClkInitStruct.ClockType = RCC_CLOCKTYPE_HCLK|RCC_CLOCKTYPE_SYSCLK
-							  |RCC_CLOCKTYPE_PCLK1|RCC_CLOCKTYPE_PCLK2;
+                              |RCC_CLOCKTYPE_PCLK1|RCC_CLOCKTYPE_PCLK2;
   RCC_ClkInitStruct.SYSCLKSource = RCC_SYSCLKSOURCE_PLLCLK;
   RCC_ClkInitStruct.AHBCLKDivider = RCC_SYSCLK_DIV1;
   RCC_ClkInitStruct.APB1CLKDivider = RCC_HCLK_DIV4;
@@ -229,7 +292,7 @@ void SystemClock_Config(void)
 
   if (HAL_RCC_ClockConfig(&RCC_ClkInitStruct, FLASH_LATENCY_5) != HAL_OK)
   {
-	Error_Handler();
+    Error_Handler();
   }
 }
 
@@ -291,7 +354,7 @@ void updateSnake() {
 		case RIGHT: newHead.x++; break;
 	}
 
-	// Kiểm tra va chạm tường hoặc thân
+	// Kiểm tra va chạm tư�?ng hoặc thân
 	if (newHead.x < 0 || newHead.y < 0 || newHead.x >= 20 || newHead.y >= 20 || isFoodOnSnake(newHead)) {
 		game_state = GAME_OVER;
 		return;
@@ -305,11 +368,11 @@ void updateSnake() {
 
 	// Kiểm tra ăn thức ăn
 	if (newHead.x == food.x && newHead.y == food.y) {
-		snake_length++; // Tăng chiều dài rắn
+		snake_length++; // Tăng chi�?u dài rắn
 		generateRandomFood(); // Sinh thức ăn mới
 	} else {
 		// Nếu không ăn thức ăn, xóa đuôi
-		snake[snake_length] = (Point){-1, -1}; // Đánh dấu phần tử trống
+		snake[snake_length] = (Point){-1, -1}; // �?ánh dấu phần tử trống
 	}
 }
 
@@ -328,26 +391,28 @@ uint8_t isTouchedStartButton() {
     if (!touch_IsTouched()) return 0;
     uint16_t x = touch_GetX();
     uint16_t y = touch_GetY();
-    return (x >= 125 && x <= 225 && y >= 210 && y <= 240);
+    return (x >= buttonStartX1 && x <= buttonStartX2 && y >= buttonStartY1 && y <= buttonStartY2);
 }
 
 
-// Hàm xử lý các nút điều hướng
+
+// Hàm xử lý các nút đi�?u hướng
 void handleNavigationButtons() {
     if (!touch_IsTouched()) return;
     uint16_t x = touch_GetX();
     uint16_t y = touch_GetY();
 
-    if (x >= 150 && x <= 200 && y >= 215 && y <= 245) {
-        if (direction != DOWN) direction = UP; // Ngăn quay từ DOWN sang UP
-    } else if (x >= 150 && x <= 200 && y >= 255 && y <= 285) {
-        if (direction != UP) direction = DOWN; // Ngăn quay từ UP sang DOWN
-    } else if (x >= 100 && x <= 150 && y >= 255 && y <= 285) {
-        if (direction != RIGHT) direction = LEFT; // Ngăn quay từ RIGHT sang LEFT
-    } else if (x >= 200 && x <= 250 && y >= 255 && y <= 285) {
-        if (direction != LEFT) direction = RIGHT; // Ngăn quay từ LEFT sang RIGHT
+    if (x >= buttonUpX1 && x <= buttonUpX2 && y >= buttonUpY1 && y <= buttonUpY2) {
+        if (direction != DOWN) direction = UP;
+    } else if (x >= buttonDownX1 && x <= buttonDownX2 && y >= buttonDownY1 && y <= buttonDownY2) {
+        if (direction != UP) direction = DOWN;
+    } else if (x >= buttonLeftX1 && x <= buttonLeftX2 && y >= buttonLeftY1 && y <= buttonLeftY2) {
+        if (direction != RIGHT) direction = LEFT;
+    } else if (x >= buttonRightX1 && x <= buttonRightX2 && y >= buttonRightY1 && y <= buttonRightY2) {
+        if (direction != LEFT) direction = RIGHT;
     }
 }
+
 
 // Hiển thị màn hình Game Over
 void drawGameOverScreen() {
@@ -359,36 +424,40 @@ void drawGameOverScreen() {
 void drawStartScreen() {
     lcd_Clear(BLACK); // Xóa màn hình với màu đen
     drawGameFrame();  // Vẽ khung trò chơi
-    drawNavigationButtons(); // Vẽ các nút điều hướng
+    drawNavigationButtons(); // Vẽ các nút đi�?u hướng
     drawStartButton(); // Vẽ nút Start
 }
 
 void drawStartButton() {
-	// Vẽ nút "Start" với màu xanh dương nhạt
-	lcd_Fill(125, 210, 225, 240, GBLUE);
-	// Hiển thị chữ "Start" với màu trắng
-	lcd_ShowStr(150, 220, "Start", WHITE, GBLUE, 24, 1);
+    lcd_Fill(buttonStartX1, buttonStartY1, buttonStartX2, buttonStartY2, GBLUE);
+    lcd_ShowStr(buttonStartX1 + 25, buttonStartY1 + 5, "Start", WHITE, GBLUE, 24, 1);
 }
+
 
 void drawGameFrame() {
-	// Vẽ khung trò chơi với màu trắng
-	lcd_DrawRectangle(75, 10, 275, 210, WHITE);
+    lcd_DrawRectangle(gameFrameX1, gameFrameY1, gameFrameX2, gameFrameY2, WHITE);
 }
 
+
 void drawNavigationButtons() {
-	// Nút UP
-	lcd_Fill(150, 215, 200, 245, GBLUE);
-	lcd_ShowStr(165, 225, "UP", WHITE, GBLUE, 16, 1);
-	// Nút DOWN
-	lcd_Fill(150, 255, 200, 285, GBLUE);
-	lcd_ShowStr(155, 265, "DOWN", WHITE, GBLUE, 16, 1);
-	// Nút LEFT
-	lcd_Fill(100, 255, 150, 285, GBLUE);
-	lcd_ShowStr(115, 265, "LEFT", WHITE, GBLUE, 16, 1);
-	// Nút RIGHT
-	lcd_Fill(200, 255, 250, 285, GBLUE);
-	lcd_ShowStr(215, 265, "RIGHT", WHITE, GBLUE, 16, 1);
+    // Nút UP
+    lcd_Fill(buttonUpX1, buttonUpY1, buttonUpX2, buttonUpY2, GBLUE);
+    lcd_ShowStr(buttonUpX1 + 15, buttonUpY1 + 5, "UP", WHITE, GBLUE, 16, 1);
+
+    // Nút DOWN
+    lcd_Fill(buttonDownX1, buttonDownY1, buttonDownX2, buttonDownY2, GBLUE);
+    lcd_ShowStr(buttonDownX1 + 5, buttonDownY1 + 5, "DOWN", WHITE, GBLUE, 16, 1);
+
+    // Nút LEFT
+    lcd_Fill(buttonLeftX1, buttonLeftY1, buttonLeftX2, buttonLeftY2, GBLUE);
+    lcd_ShowStr(buttonLeftX1 + 10, buttonLeftY1 + 5, "LEFT", WHITE, GBLUE, 16, 1);
+
+    // Nút RIGHT
+    lcd_Fill(buttonRightX1, buttonRightY1, buttonRightX2, buttonRightY2, GBLUE);
+    lcd_ShowStr(buttonRightX1 + 10, buttonRightY1 + 5, "RIGHT", WHITE, GBLUE, 16, 1);
 }
+
+
 
 
 
@@ -425,5 +494,3 @@ void assert_failed(uint8_t *file, uint32_t line)
   /* USER CODE END 6 */
 }
 #endif /* USE_FULL_ASSERT */
-
-/************************ (C) COPYRIGHT STMicroelectronics *****END OF FILE****/

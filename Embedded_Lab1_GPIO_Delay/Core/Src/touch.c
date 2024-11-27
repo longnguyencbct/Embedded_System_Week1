@@ -13,7 +13,7 @@
 #include <stdio.h>
 
 static void TP_Write_Byte(uint8_t num);
-static uint16_t TP_Read_AD(uint8_t CMD);
+uint16_t TP_Read_AD(uint8_t CMD);
 static uint16_t TP_Read_XOY(uint8_t xy);
 static uint8_t TP_Read_XY(uint16_t *x,uint16_t *y);
 static uint8_t TP_Read_XY2(uint16_t *x,uint16_t *y);
@@ -58,7 +58,7 @@ static void TP_Write_Byte(uint8_t num)
 	}
 }
 
-static uint16_t TP_Read_AD(uint8_t CMD)
+uint16_t TP_Read_AD(uint8_t CMD)
 {
 	uint8_t count=0;
 	uint16_t Num=0;
