@@ -80,11 +80,20 @@ void Error_Handler(void);
 #define INPUT_X3_GPIO_Port GPIOC
 #define LD_LATCH_Pin GPIO_PIN_6
 #define LD_LATCH_GPIO_Port GPIOG
+#define T_CS_Pin GPIO_PIN_7
+#define T_CS_GPIO_Port GPIOG
+#define T_CLK_Pin GPIO_PIN_8
+#define T_CLK_GPIO_Port GPIOG
+#define T_PEN_Pin GPIO_PIN_8
+#define T_PEN_GPIO_Port GPIOC
+#define T_MOSI_Pin GPIO_PIN_9
+#define T_MOSI_GPIO_Port GPIOC
 #define FSMC_BLK_Pin GPIO_PIN_8
 #define FSMC_BLK_GPIO_Port GPIOA
+#define T_MISO_Pin GPIO_PIN_12
+#define T_MISO_GPIO_Port GPIOC
 #define BTN_LOAD_Pin GPIO_PIN_3
 #define BTN_LOAD_GPIO_Port GPIOD
-
 /* USER CODE BEGIN Private defines */
 
 /* USER CODE END Private defines */
@@ -94,3 +103,5 @@ void Error_Handler(void);
 #endif
 
 #endif /* __MAIN_H */
+
+/************************ (C) COPYRIGHT STMicroelectronics *****END OF FILE****/

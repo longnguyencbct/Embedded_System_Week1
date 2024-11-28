@@ -12,16 +12,6 @@ uint8_t msg[100];
 uint8_t receive_buffer1 = 0, receive_buffer2 = 0;
 uint8_t check_esp = 0;
 
-// Định nghĩa các biến toàn cục
-uint8_t ring_buffer[RING_BUFFER_SIZE] = {0}; // Buffer vòng để lưu dữ liệu nhận
-uint16_t head = 0;                          // Con trỏ đầu của buffer
-uint16_t tail = 0;                          // Con trỏ cuối của buffer
-uint8_t data_available_flag = 0;            // Cờ đánh dấu dữ liệu mới
-
-
-extern uint16_t head, tail;
-extern uint8_t data_available_flag;
-
 void uart_init_rs232(){
 	HAL_UART_Receive_IT(&huart1, &receive_buffer1, 1);
 }
@@ -77,43 +67,28 @@ void uart_EspSendBytes(uint8_t* bytes, uint16_t size){
 	HAL_UART_Transmit(&huart2, bytes, size, 10);
 }
 
+void HAL_UART_RxCpltCallback(UART_HandleTypeDef *huart){
+	if(huart->Instance == USART1){
+		// rs232 isr
+		// can be modified
+		HAL_UART_Transmit(&huart1, &receive_buffer1, 1, 10);
+
+		// turn on the receive interrupt
+		HAL_UART_Receive_IT(&huart1, &receive_buffer1, 1);
+	}
+
+	if(huart->Instance == USART2){
+		if(receive_buffer2) check_esp = 1;
+		else if(receive_buffer2 == 'a') light_status = 0;
+		else if(receive_buffer2 == 'A') light_status = 1;
+		HAL_UART_Receive_IT(&huart2, &receive_buffer2, 1);
+	}
+}
+
 uint8_t uart_EspCheck(){
 	if(check_esp == 1) return 1;
 	return 0;
 }
 
-void HAL_UART_RxCpltCallback(UART_HandleTypeDef *huart) {
-    if (huart->Instance == USART1) {
-        // Add the received byte to the ring buffer
-        ring_buffer[head] = receive_buffer1;
-        head = (head + 1) % RING_BUFFER_SIZE;
 
-        // Check if the buffer is full (head == tail indicates overflow)
-        if (head == tail) {
-            // Handle overflow: adjust tail to discard oldest data
-            tail = (tail + 1) % RING_BUFFER_SIZE;
-        }
-
-        // Set flag to indicate new data is available for processing
-        data_available_flag = 1;
-        // Re-enable UART interrupt for the next byte
-        HAL_UART_Receive_IT(&huart1, &receive_buffer1, 1);
-    	}
-
-    if (huart->Instance == USART2) {
-        // Handle ESP ISR
-        if (receive_buffer2 == 'O') {
-            check_esp = 1;
-        } else if (receive_buffer2 == 'a') {
-            light_status = 0;
-        } else if (receive_buffer2 == 'A') {
-            light_status = 1;
-        }
-
-        // Re-enable UART receive interrupt
-        HAL_UART_Receive_IT(&huart2, &receive_buffer2, 1);
-    }
-
-
-}
 

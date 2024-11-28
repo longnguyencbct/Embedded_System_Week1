@@ -9,13 +9,7 @@
 #ifndef INC_LCD_H_
 #define INC_LCD_H_
 
-/*
- * lcd.h
- *
- *  Created on: Aug 9, 2023
- *      Author: phamv
- */
-//#include "fsmc.h"
+#include "fsmc.h"
 #include "gpio.h"
 #include "stdlib.h"
 #include <string.h>

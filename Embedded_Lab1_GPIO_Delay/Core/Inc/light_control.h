@@ -1,8 +1,8 @@
 /*
  * light_control.h
  *
- *  Created on: Nov 28, 2024
- *      Author: clong
+ *  Created on: Nov 15, 2023
+ *      Author: phamv
  */
 
 #ifndef INC_LIGHT_CONTROL_H_
@@ -16,6 +16,7 @@
 extern uint8_t light_status;
 
 void lightProcess();
+
 void test_Esp();
 
 #endif /* INC_LIGHT_CONTROL_H_ */

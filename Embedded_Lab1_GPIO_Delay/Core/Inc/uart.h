@@ -17,8 +17,6 @@ extern uint8_t flag_uart2;
 extern uint8_t receive_buffer1;
 extern uint8_t receive_buffer2;
 
-#define RING_BUFFER_SIZE 10
-extern uint8_t ring_buffer[RING_BUFFER_SIZE];
 
 void uart_init_rs232();
 
@@ -34,3 +32,4 @@ void uart_init_esp();
 void uart_EspSendBytes(uint8_t* bytes, uint16_t size);
 
 #endif /* INC_UART_H_ */
+

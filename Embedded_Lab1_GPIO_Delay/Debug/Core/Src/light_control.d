@@ -38,7 +38,7 @@ Core/Src/light_control.o: ../Core/Src/light_control.c \
  ../Drivers/STM32F4xx_HAL_Driver/Inc/stm32f4xx_hal_uart.h \
  ../Core/Inc/uart.h ../Core/Inc/usart.h ../Core/Inc/utils.h \
  ../Core/Inc/light_control.h ../Core/Inc/button.h ../Core/Inc/spi.h \
- ../Core/Inc/lcd.h
+ ../Core/Inc/lcd.h ../Core/Inc/fsmc.h
 ../Core/Inc/light_control.h:
 ../Core/Inc/gpio.h:
 ../Core/Inc/main.h:
@@ -85,3 +85,4 @@ Core/Src/light_control.o: ../Core/Src/light_control.c \
 ../Core/Inc/button.h:
 ../Core/Inc/spi.h:
 ../Core/Inc/lcd.h:
+../Core/Inc/fsmc.h:
