@@ -24,9 +24,11 @@
 #include "i2c.h"
 #include "spi.h"
 #include "tim.h"
+#include "uart.h"
 #include "usart.h"
 #include "gpio.h"
 #include "fsmc.h"
+#include "light_control.h"
 
 /* Private includes ----------------------------------------------------------*/
 /* USER CODE BEGIN Includes */
@@ -129,6 +131,8 @@ int main(void)
 	  flag_timer2 = 0;
 	  button_Scan();
 	  test_LedDebug();
+	  test_Esp();
+	  lightProcess();
 	  test_Adc_Uart();
 	  test_Buzzer();
     /* USER CODE END WHILE */

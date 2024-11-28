@@ -5,10 +5,12 @@
  *      Author: HaHuyen
  */
 #include "uart.h"
-#include "ds3231.h"
 
-uint8_t receive_buffer1 = 0;
+
 uint8_t msg[100];
+
+uint8_t receive_buffer1 = 0, receive_buffer2 = 0;
+uint8_t check_esp = 0;
 
 // Định nghĩa các biến toàn cục
 uint8_t ring_buffer[RING_BUFFER_SIZE] = {0}; // Buffer vòng để lưu dữ liệu nhận
@@ -66,6 +68,20 @@ void uart_Rs232SendNumPercent(uint32_t num)
     uart_Rs232SendString(msg);
 }
 
+void uart_init_esp(){
+	HAL_UART_Receive_IT(&huart2, &receive_buffer2, 1);
+	HAL_GPIO_WritePin(ESP12_PWR_GPIO_Port, ESP12_PWR_Pin, 1);
+}
+
+void uart_EspSendBytes(uint8_t* bytes, uint16_t size){
+	HAL_UART_Transmit(&huart2, bytes, size, 10);
+}
+
+uint8_t uart_EspCheck(){
+	if(check_esp == 1) return 1;
+	return 0;
+}
+
 void HAL_UART_RxCpltCallback(UART_HandleTypeDef *huart) {
     if (huart->Instance == USART1) {
         // Add the received byte to the ring buffer
@@ -83,18 +99,21 @@ void HAL_UART_RxCpltCallback(UART_HandleTypeDef *huart) {
         // Re-enable UART interrupt for the next byte
         HAL_UART_Receive_IT(&huart1, &receive_buffer1, 1);
     	}
+
+    if (huart->Instance == USART2) {
+        // Handle ESP ISR
+        if (receive_buffer2 == 'O') {
+            check_esp = 1;
+        } else if (receive_buffer2 == 'a') {
+            light_status = 0;
+        } else if (receive_buffer2 == 'A') {
+            light_status = 1;
+        }
+
+        // Re-enable UART receive interrupt
+        HAL_UART_Receive_IT(&huart2, &receive_buffer2, 1);
+    }
+
+
 }
-
-//void HAL_UART_RxCpltCallback(UART_HandleTypeDef *huart){
-//	if(huart->Instance == USART1){
-//		// rs232 isr
-//		// can be modified
-//		HAL_UART_Transmit(&huart1, &receive_buffer1, 1, 10);
-//
-//
-//		// turn on the receice interrupt
-//		HAL_UART_Receive_IT(&huart1, &receive_buffer1, 1);
-//	}
-//}
-
 

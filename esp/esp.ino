@@ -2,14 +2,13 @@
 #include "Adafruit_MQTT.h"
 #include "Adafruit_MQTT_Client.h"
 
-// Wifi name
+// WiFi credentials
 #define WLAN_SSID "."
-// Wifi password
 #define WLAN_PASS "12345679"
 
+// Adafruit MQTT server credentials
 #define AIO_SERVER "io.adafruit.com"
 #define AIO_SERVERPORT 1883
-
 #define AIO_USERNAME "longnguyencbct"
 #define AIO_KEY "aio_BCMY79YbcNSKmYJDzR8KxQI6iWhO"
 
@@ -20,8 +19,20 @@ Adafruit_MQTT_Client mqtt(&client, AIO_SERVER, AIO_SERVERPORT, AIO_USERNAME, AIO
 // MQTT topic for publishing
 Adafruit_MQTT_Publish light_pub(&mqtt, AIO_USERNAME "/feeds/led");
 
+// MQTT topic for subscribing
+Adafruit_MQTT_Subscribe light_sub(&mqtt, AIO_USERNAME "/feeds/led", MQTT_QOS_1);
+
 int led_counter = 0;
-int led_status = HIGH ;
+int led_status = HIGH;
+
+// Callback function for received MQTT messages
+void lightCallback(char *data, uint16_t len) {
+    if (data[0] == '0') {
+        Serial.print('a');
+    } else if (data[0] == '1') {
+        Serial.print('A');
+    }
+}
 
 void setup() {
     // Configure pins
@@ -39,8 +50,13 @@ void setup() {
         delay(500);
     }
 
+    // Subscribe to MQTT topic
+    light_sub.setCallback(lightCallback);
+    mqtt.subscribe(&light_sub);
+
     // Connect to Adafruit MQTT
     while (mqtt.connect() != 0) {
+        mqtt.disconnect();
         delay(500);
     }
 
@@ -49,8 +65,12 @@ void setup() {
 }
 
 void loop() {
+    // Process incoming MQTT messages
+    mqtt.processPackets(10);
+
+    // Read Serial input
     if (Serial.available()) {
-        int msg = Serial.read();
+        char msg = Serial.read();
         if (msg == 'o') {
             Serial.print('O');
         } else if (msg == 'a') {
@@ -60,17 +80,12 @@ void loop() {
         }
     }
 
+    // LED toggle logic
     led_counter++;
     if (led_counter == 100) {
-        // Every 1 second
         led_counter = 0;
         // Toggle LED
-        if (led_status == HIGH) {
-            led_status = LOW;
-        } else {
-            led_status = HIGH;
-        }
-
+        led_status = (led_status == HIGH) ? LOW : HIGH;
         digitalWrite(2, led_status);
     }
     delay(10);
