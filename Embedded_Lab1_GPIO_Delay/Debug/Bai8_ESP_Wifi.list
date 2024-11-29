@@ -424,16 +424,16 @@ void test_Adc() {
  8000570:	b590      	push	{r4, r7, lr}
  8000572:	b08f      	sub	sp, #60	@ 0x3c
  8000574:	af04      	add	r7, sp, #16
-    count_adc = (count_adc + 1) % 200;
+    count_adc = (count_adc + 1) % 100;
  8000576:	4b36      	ldr	r3, [pc, #216]	@ (8000650 <test_Adc+0xe0>)
  8000578:	781b      	ldrb	r3, [r3, #0]
  800057a:	3301      	adds	r3, #1
  800057c:	4a35      	ldr	r2, [pc, #212]	@ (8000654 <test_Adc+0xe4>)
  800057e:	fb82 1203 	smull	r1, r2, r2, r3
- 8000582:	1191      	asrs	r1, r2, #6
+ 8000582:	1151      	asrs	r1, r2, #5
  8000584:	17da      	asrs	r2, r3, #31
  8000586:	1a8a      	subs	r2, r1, r2
- 8000588:	21c8      	movs	r1, #200	@ 0xc8
+ 8000588:	2164      	movs	r1, #100	@ 0x64
  800058a:	fb01 f202 	mul.w	r2, r1, r2
  800058e:	1a9a      	subs	r2, r3, r2
  8000590:	b2d2      	uxtb	r2, r2

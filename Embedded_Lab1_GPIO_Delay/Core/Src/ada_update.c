@@ -3,7 +3,7 @@
 uint8_t count_adc = 0;
 
 void test_Adc() {
-    count_adc = (count_adc + 1) % 200;
+    count_adc = (count_adc + 1) % 100;
 	test_Esp();
 	lightProcess();
 
