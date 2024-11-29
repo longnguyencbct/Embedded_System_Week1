@@ -10,7 +10,7 @@
 #define AIO_SERVER      "io.adafruit.com"
 #define AIO_SERVERPORT  1883
 #define AIO_USERNAME    "longnguyencbct"
-#define AIO_KEY         "aio_BCMY79YbcNSKmYJDzR8KxQI6iWhO"
+#define AIO_KEY         "wtfpassword"
 
 // MQTT client
 WiFiClient client;
