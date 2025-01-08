@@ -59,63 +59,6 @@
 /* Private variables ---------------------------------------------------------*/
 
 /* USER CODE BEGIN PV */
-#define INIT 0
-#define PLAYING 1
-#define GAME_OVER 2
-
-#define UP 0
-#define DOWN 1
-#define LEFT 2
-#define RIGHT 3
-
-int game_state = INIT;
-int direction = UP; // Mặc định hướng ban đầu là UP
-int snake_length = 3; // �?ộ dài mặc định của rắn
-
-typedef struct {
-    int x;
-    int y;
-} Point;
-
-Point snake[100]; // Tối đa 100 phần tử rắn
-Point food;       // T�?a độ thức ăn
-
-int gameFrameX1 = 10;
-int gameFrameY1 = 0;
-int gameFrameX2 = 230;
-int gameFrameY2 = 220;
-
-// T�?a độ nút
-int buttonUpX1 = 100;
-int buttonUpY1 = 230;
-int buttonUpX2 = 150;
-int buttonUpY2 = 260;
-
-int buttonDownX1 = 100;
-int buttonDownY1 = 290;
-int buttonDownX2 = 150;
-int buttonDownY2 = 320;
-
-int buttonLeftX1 = 50;
-int buttonLeftY1 = 260;
-int buttonLeftX2 = 100;
-int buttonLeftY2 = 290;
-
-int buttonRightX1 = 150;
-int buttonRightY1 = 260;
-int buttonRightX2 = 200;
-int buttonRightY2 = 290;
-
-int buttonStartX1 = 70;
-int buttonStartY1 = 95;
-int buttonStartX2 = 170;
-int buttonStartY2 = 125;
-
-int buttonReturnX1 = 80;
-int buttonReturnY1 = 200;
-int buttonReturnX2 = 160;
-int buttonReturnY2 = 230;
-
 
 /* USER CODE END PV */
 
@@ -123,14 +66,6 @@ int buttonReturnY2 = 230;
 void SystemClock_Config(void);
 /* USER CODE BEGIN PFP */
 void system_init();
-void test_LedDebug();
-void touchProcess();
-void updateGame();
-void drawGameOverScreen();
-uint8_t isButtonClear();
-uint8_t isTouchedStartButton();
-uint8_t isTouchedReturnButton();
-uint8_t isHeadOnFood(Point);
 /* USER CODE END PFP */
 
 /* Private user code ---------------------------------------------------------*/
@@ -182,11 +117,24 @@ int main(void)
 
   /* Infinite loop */
   /* USER CODE BEGIN WHILE */
+  uint8_t check_eeprom=at24c_Full_Check();
  while (1)
   {
+//	 lcd_Clear(BLACK);
+	 lcd_ShowStr(10, 10,"New While Loop", WHITE, BLACK, 16, 1);
+	 if(check_eeprom==0){
+		 lcd_ShowStr(10, 30,"EEPROM Check Passed", WHITE, BLACK, 16, 1);
+	 }else if((check_eeprom==1)){
+		 lcd_ShowStr(10, 30,"EEPROM Check Failed", WHITE, BLACK, 16, 1);
+	 }else{
+		 lcd_ShowStr(10, 30,"Unknown error occurred", WHITE, BLACK, 16, 1);
+	 }
+
+
     /* USER CODE END WHILE */
 
     /* USER CODE BEGIN 3 */
+	 HAL_Delay(500);
   }
   /* USER CODE END 3 */
 }
@@ -242,7 +190,7 @@ void system_init(){
 	  timer_init();
 	  button_init();
 	  lcd_init();
-//	  touch_init();
+	  at24c_init();
 	  setTimer2(500);
 }
 

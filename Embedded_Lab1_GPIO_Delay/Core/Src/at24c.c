@@ -1,4 +1,5 @@
 #include "at24c.h"
+#include "lcd.h"
 
 uint8_t at24c_Full_Check(void)
 {
@@ -6,27 +7,41 @@ uint8_t at24c_Full_Check(void)
     uint8_t testValue;  // Test value to write
     uint8_t readValue;
 
-    // Iterate through all available addresses
     for (addr = 0; addr <= EE_TYPE; addr++)
     {
-        testValue = addr % 256; // Set test value as increasing integer (mod 256 for 8-bit range)
+        lcd_Clear(BLACK); // Clear the screen for each iteration
 
-        // Write the test value to the current address
+        testValue = addr % 256; // Set test value (mod 256 for 8-bit range)
+
+        // Show debug info
+        char debug_str[50];
+
+        sprintf(debug_str, "== ADDRESS %d ==", addr);
+		lcd_ShowStr(10, 50, debug_str, WHITE, BLACK, 16, 1);
+
+        // Write the test value
         at24c_WriteOneByte(addr, testValue);
-        HAL_Delay(5);  // Ensure the write cycle is completed
+        sprintf(debug_str, "%d Write: %d", addr, testValue);
+        lcd_ShowStr(10, 70, debug_str, WHITE, BLACK, 16, 1);
+        HAL_Delay(500); // Ensure EEPROM is ready for read
 
-        // Read back the value from the current address
+        // Read back the value
         readValue = at24c_ReadOneByte(addr);
+        sprintf(debug_str, "%d Read: %d", addr, readValue);
+        lcd_ShowStr(10, 90, debug_str, WHITE, BLACK, 16, 1);
 
-        // Verify the value matches the written value
+        // Verify the value
         if (readValue != testValue)
         {
-            return 1;  // Return error if the values do not match
+            return 1; // Error
         }
+
+        HAL_Delay(1000);
     }
 
-    return 0;  // Return 0 if all addresses pass the check
+    return 0; // Success
 }
+
 
 void at24c_WriteFloat(uint16_t WriteAddr, float data)
 {
@@ -101,8 +116,11 @@ uint8_t at24c_ReadOneByte(uint16_t ReadAddr)
 
 void at24c_WriteOneByte(uint16_t WriteAddr, uint8_t DataToWrite)
 {
-    HAL_I2C_Mem_Write(&hi2c1, 0xA0, WriteAddr, I2C_MEMADD_SIZE_16BIT, &DataToWrite, 1, 10);
-    HAL_Delay(5);
+	if (HAL_I2C_Mem_Write(&hi2c1, 0xA0, WriteAddr, I2C_MEMADD_SIZE_16BIT, &DataToWrite, 1, 100) != HAL_OK)
+	{
+		lcd_ShowStr(10, 120, "Write Error", WHITE, BLACK, 16, 1);
+	}
+    HAL_Delay(50);
 }
 
 void at24c_Read(uint16_t ReadAddr, uint8_t *pBuffer, uint16_t NumToRead)
