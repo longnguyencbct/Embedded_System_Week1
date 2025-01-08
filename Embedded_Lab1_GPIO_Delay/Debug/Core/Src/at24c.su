@@ -1,6 +1,7 @@
-../Core/Src/at24c.c:13:6:at24c_init	8	static
-../Core/Src/at24c.c:18:9:at24c_ReadOneByte	40	static
-../Core/Src/at24c.c:25:6:at24c_WriteOneByte	32	static
-../Core/Src/at24c.c:31:9:at24c_Check	16	static
-../Core/Src/at24c.c:46:6:at24c_Read	24	static
-../Core/Src/at24c.c:55:6:at24c_Write	16	static
+../Core/Src/at24c.c:3:9:at24c_Full_Check	16	static
+../Core/Src/at24c.c:31:6:at24c_WriteFloat	24	static
+../Core/Src/at24c.c:41:7:at24c_ReadFloat	40	static
+../Core/Src/at24c.c:52:6:at24c_WriteInt	24	static
+../Core/Src/at24c.c:62:5:at24c_ReadInt	40	static
+../Core/Src/at24c.c:73:6:at24c_WriteString	16	static
+../Core/Src/at24c.c:84:6:at24c_ReadString	32	static

@@ -38,7 +38,7 @@
 #include "ds3231.h"
 #include "sensor.h"
 #include "buzzer.h"
-#include "touch.h"
+//#include "touch.h"
 /* USER CODE END Includes */
 
 /* Private typedef -----------------------------------------------------------*/
@@ -181,56 +181,8 @@ int main(void)
 
   /* Infinite loop */
   /* USER CODE BEGIN WHILE */
-  // Hiển thị giao diện khởi đầu
-  drawStartScreen();//test
-  uint8_t CMD_RDX=0XD0;
-  uint8_t CMD_RDY=0X90;
  while (1)
   {
-	touch_Scan(); // Quét màn hình cảm ứng
-	if (flag_timer2) {
-		flag_timer2 = 0;
-
-	  switch (game_state) {
-	  case INIT: {
-	      drawStartScreen(); // Ensure the start screen, including buttons, is drawn
-	      if (isTouchedStartButton()) {
-	          initializeGame();        // Khởi tạo trò chơi
-	          lcd_Clear(BLACK);        // Clear the screen for PLAYING state
-	          drawGameFrame();         // Draw game frame
-	          drawSnakeAndFood();      // Vẽ rắn và thức ăn
-	          game_state = PLAYING;    // Switch to PLAYING state
-	      }
-	      break;
-	  }
-
-
-		case PLAYING: {
-			drawPlayScreen();
-		  handleNavigationButtons(); // Xử lý đi�?u khiển
-		  updateSnake();             // Cập nhật trạng thái rắn
-		  drawSnakeAndFood();        // Vẽ lại rắn và thức ăn
-		  break;
-		}
-
-		case GAME_OVER: {
-		    drawGameOverScreen(); // Display the Game Over screen
-		    if (isTouchedStartButton()) {
-		        initializeGame();  // Restart the game
-		        game_state = PLAYING; // Switch to the PLAYING state
-		    } else if (isTouchedReturnButton()) {
-		        game_state = INIT; // Transition back to INIT state
-		        drawStartScreen(); // Display the start screen
-		    }
-		    break;
-		}
-
-
-		default:
-			game_state = INIT; // Quay v�? trạng thái khởi đầu
-		  break;
-	  }
-	}
     /* USER CODE END WHILE */
 
     /* USER CODE BEGIN 3 */
@@ -289,202 +241,10 @@ void system_init(){
 	  timer_init();
 	  button_init();
 	  lcd_init();
-	  touch_init();
+//	  touch_init();
 	  setTimer2(500);
 }
 
-uint8_t count_led_debug = 0;
-
-void test_LedDebug(){
-	count_led_debug = (count_led_debug + 1)%20;
-	if(count_led_debug == 0){
-		HAL_GPIO_TogglePin(DEBUG_LED_GPIO_Port, DEBUG_LED_Pin);
-	}
-}
-
-void initializeGame() {
-    // Khởi tạo rắn với 3 điểm liên tiếp
-    snake[0] = (Point){10, 5};
-    snake[1] = (Point){9, 5};
-    snake[2] = (Point){8, 5};
-
-    snake_length = 3;
-    direction = RIGHT;
-
-    // Sinh thức ăn ngẫu nhiên, đảm bảo không trùng với rắn
-    generateRandomFood();
-}
-
-void generateRandomFood() {
-    int min_x = gameFrameX1;
-    int min_y = gameFrameY1;
-    int max_x = gameFrameX2 - 5;  // Account for food size
-    int max_y = gameFrameY2 - 5;  // Account for food size
-
-    do {
-        food.x = (rand() % ((max_x - min_x) / 5)) * 5 + min_x; // Snap to 5-pixel grid
-        food.y = (rand() % ((max_y - min_y) / 5)) * 5 + min_y; // Snap to 5-pixel grid
-    } while (isFoodOnSnake(food)); // Ensure no overlap with the snake
-}
-
-
-
-
-int isFoodOnSnake(Point food) {
-    for (int i = 0; i < snake_length; i++) {
-        if (snake[i].x == food.x && snake[i].y == food.y) {
-            return 1;
-        }
-    }
-    return 0;
-}
-
-void updateSnake() {
-    // Calculate the new head position based on the direction
-    Point newHead = snake[0];
-    switch (direction) {
-        case UP:    newHead.y -= 5; break;
-        case DOWN:  newHead.y += 5; break;
-        case LEFT:  newHead.x -= 5; break;
-        case RIGHT: newHead.x += 5; break;
-    }
-
-    // Check for collision with the frame boundaries or self
-    if (newHead.x < gameFrameX1 || newHead.y < gameFrameY1 ||
-        newHead.x >= gameFrameX2 || newHead.y >= gameFrameY2 || isFoodOnSnake(newHead)) {
-        game_state = GAME_OVER;
-        return;
-    }
-
-    // Shift the snake's body to make room for the new head
-    for (int i = snake_length; i > 0; i--) {
-        snake[i] = snake[i - 1];
-    }
-    snake[0] = newHead;
-
-    // Check if the snake's head overlaps with the food
-    if (isHeadOnFood(newHead)) {
-        snake_length++;  // Grow the snake
-        generateRandomFood();  // Place new food
-    } else {
-        // Clear the last segment (snake tail) if no food is eaten
-        snake[snake_length] = (Point){-1, -1};
-    }
-}
-
-
-uint8_t isHeadOnFood(Point head) {
-    // Check if the head overlaps with the food
-    return !(head.x + 5 <= food.x || food.x + 5 <= head.x ||
-             head.y + 5 <= food.y || food.y + 5 <= head.y);
-}
-
-
-
-void drawSnakeAndFood() {
-    // Clear the previous frame inside the game area
-//    lcd_Fill(gameFrameX1, gameFrameY1, gameFrameX2, gameFrameY2, BLACK);
-
-    // Draw the snake
-    for (int i = 0; i < snake_length; i++) {
-        lcd_Fill(snake[i].x, snake[i].y,
-                 snake[i].x + 5, snake[i].y + 5, GREEN); // Render 5x5 blocks
-    }
-
-    // Draw the food
-    lcd_Fill(food.x, food.y,
-             food.x + 5, food.y + 5, RED); // Render 5x5 blocks
-}
-
-
-
-uint8_t isTouchedStartButton() {
-    if (!touch_IsTouched()) return 0;
-    uint16_t x = touch_GetX();
-    uint16_t y = touch_GetY();
-    return (x >= buttonStartX1 && x <= buttonStartX2 && y >= buttonStartY1 && y <= buttonStartY2);
-}
-
-
-
-// Hàm xử lý các nút đi�?u hướng
-void handleNavigationButtons() {
-    if (!touch_IsTouched()) return;
-    uint16_t x = touch_GetX();
-    uint16_t y = touch_GetY();
-
-    if (x >= buttonUpX1 && x <= buttonUpX2 && y >= buttonUpY1 && y <= buttonUpY2) {
-        if (direction != DOWN) direction = UP;
-    } else if (x >= buttonDownX1 && x <= buttonDownX2 && y >= buttonDownY1 && y <= buttonDownY2) {
-        if (direction != UP) direction = DOWN;
-    } else if (x >= buttonLeftX1 && x <= buttonLeftX2 && y >= buttonLeftY1 && y <= buttonLeftY2) {
-        if (direction != RIGHT) direction = LEFT;
-    } else if (x >= buttonRightX1 && x <= buttonRightX2 && y >= buttonRightY1 && y <= buttonRightY2) {
-        if (direction != LEFT) direction = RIGHT;
-    }
-}
-
-uint8_t isTouchedReturnButton() {
-    if (!touch_IsTouched()) return 0; // Check if the screen is touched
-    uint16_t x = touch_GetX();
-    uint16_t y = touch_GetY();
-    return (x >= buttonReturnX1 && x <= buttonReturnX2 && y >= buttonReturnY1 && y <= buttonReturnY2);
-}
-
-
-// Hiển thị màn hình Game Over
-void drawGameOverScreen() {
-    lcd_Clear(BLACK); // Clear the screen
-    lcd_ShowStr(70, 100, "GAME OVER", RED, BLACK, 24, 1); // Display "Game Over"
-    lcd_ShowStr(50, 150, "Tap Start to retry", WHITE, BLACK, 16, 1); // Retry message
-
-    // Draw the Return button
-    lcd_Fill(buttonReturnX1, buttonReturnY1, buttonReturnX2, buttonReturnY2, GBLUE);
-    lcd_ShowStr(buttonReturnX1 + 10, buttonReturnY1 + 5, "Return", WHITE, GBLUE, 16, 1);
-}
-
-
-void drawStartScreen() {
-    lcd_Clear(BLACK);           // Xóa màn hình với màu đen
-    drawGameFrame();            // Vẽ khung trò chơi
-//    drawNavigationButtons();    // Vẽ các nút điều hướng
-    drawStartButton();          // Vẽ nút Start
-}
-
-void drawPlayScreen(){
-    lcd_Clear(BLACK);           // Xóa màn hình với màu đen
-    drawGameFrame();
-	drawNavigationButtons();    // Vẽ các nút điều hướng
-}
-
-void drawStartButton() {
-    lcd_Fill(buttonStartX1, buttonStartY1, buttonStartX2, buttonStartY2, GBLUE);
-    lcd_ShowStr(buttonStartX1 + 25, buttonStartY1 + 5, "Start", WHITE, GBLUE, 24, 1);
-}
-
-
-void drawGameFrame() {
-    lcd_DrawRectangle(gameFrameX1, gameFrameY1, gameFrameX2, gameFrameY2, WHITE);
-}
-
-
-void drawNavigationButtons() {
-    // Nút UP
-    lcd_Fill(buttonUpX1, buttonUpY1, buttonUpX2, buttonUpY2, GBLUE);
-    lcd_ShowStr(buttonUpX1 + 15, buttonUpY1 + 5, "UP", WHITE, GBLUE, 16, 1);
-
-    // Nút DOWN
-    lcd_Fill(buttonDownX1, buttonDownY1, buttonDownX2, buttonDownY2, GBLUE);
-    lcd_ShowStr(buttonDownX1 + 5, buttonDownY1 + 5, "DOWN", WHITE, GBLUE, 16, 1);
-
-    // Nút LEFT
-    lcd_Fill(buttonLeftX1, buttonLeftY1, buttonLeftX2, buttonLeftY2, GBLUE);
-    lcd_ShowStr(buttonLeftX1 + 10, buttonLeftY1 + 5, "LEFT", WHITE, GBLUE, 16, 1);
-
-    // Nút RIGHT
-    lcd_Fill(buttonRightX1, buttonRightY1, buttonRightX2, buttonRightY2, GBLUE);
-    lcd_ShowStr(buttonRightX1 + 10, buttonRightY1 + 5, "RIGHT", WHITE, GBLUE, 16, 1);
-}
 
 
 
