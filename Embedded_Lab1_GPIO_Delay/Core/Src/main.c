@@ -117,19 +117,23 @@ int main(void)
 
   /* Infinite loop */
   /* USER CODE BEGIN WHILE */
-  uint8_t check_eeprom=at24c_Full_Check();
+//  uint8_t check_eeprom;
+//  check_eeprom=at24c_Full_Check();
+  char debug_str[50];
  while (1)
   {
-//	 lcd_Clear(BLACK);
-	 lcd_ShowStr(10, 10,"New While Loop", WHITE, BLACK, 16, 1);
-	 if(check_eeprom==0){
-		 lcd_ShowStr(10, 30,"EEPROM Check Passed", WHITE, BLACK, 16, 1);
-	 }else if((check_eeprom==1)){
-		 lcd_ShowStr(10, 30,"EEPROM Check Failed", WHITE, BLACK, 16, 1);
-	 }else{
-		 lcd_ShowStr(10, 30,"Unknown error occurred", WHITE, BLACK, 16, 1);
-	 }
-
+	 lcd_Clear(BLACK);
+//	 lcd_ShowStr(10, 10,"New While Loop", WHITE, BLACK, 16, 1);
+//	 if(check_eeprom==0){
+//		 lcd_ShowStr(10, 30,"EEPROM Check Passed", WHITE, BLACK, 16, 1);
+//	 }else if((check_eeprom==1)){
+//		 lcd_ShowStr(10, 30,"EEPROM Check Failed", WHITE, BLACK, 16, 1);
+//	 }else{
+//		 lcd_ShowStr(10, 30,"Unknown error occurred", WHITE, BLACK, 16, 1);
+//	 }
+	 uint8_t readValue = at24c_ReadOneByte(12345);
+     sprintf(debug_str, "%d Read: %d", 12345, readValue);
+     lcd_ShowStr(10, 90, debug_str, WHITE, BLACK, 16, 1);
 
     /* USER CODE END WHILE */
 

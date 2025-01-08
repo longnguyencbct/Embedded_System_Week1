@@ -3,7 +3,7 @@
 
 uint8_t at24c_Full_Check(void)
 {
-    uint16_t addr;
+	uint32_t addr;
     uint8_t testValue;  // Test value to write
     uint8_t readValue;
 
@@ -23,7 +23,6 @@ uint8_t at24c_Full_Check(void)
         at24c_WriteOneByte(addr, testValue);
         sprintf(debug_str, "%d Write: %d", addr, testValue);
         lcd_ShowStr(10, 70, debug_str, WHITE, BLACK, 16, 1);
-        HAL_Delay(500); // Ensure EEPROM is ready for read
 
         // Read back the value
         readValue = at24c_ReadOneByte(addr);
@@ -35,76 +34,10 @@ uint8_t at24c_Full_Check(void)
         {
             return 1; // Error
         }
-
-        HAL_Delay(1000);
+//        HAL_Delay(100);
     }
 
     return 0; // Success
-}
-
-
-void at24c_WriteFloat(uint16_t WriteAddr, float data)
-{
-    uint8_t *pData = (uint8_t*)&data;
-    for (uint8_t i = 0; i < sizeof(float); i++)
-    {
-        at24c_WriteOneByte(WriteAddr + i, *(pData + i));
-        HAL_Delay(5);  // Ensure write cycle completes
-    }
-}
-
-float at24c_ReadFloat(uint16_t ReadAddr)
-{
-    float data;
-    uint8_t *pData = (uint8_t*)&data;
-    for (uint8_t i = 0; i < sizeof(float); i++)
-    {
-        *(pData + i) = at24c_ReadOneByte(ReadAddr + i);
-    }
-    return data;
-}
-
-void at24c_WriteInt(uint16_t WriteAddr, int data)
-{
-    uint8_t *pData = (uint8_t*)&data;
-    for (uint8_t i = 0; i < sizeof(int); i++)
-    {
-        at24c_WriteOneByte(WriteAddr + i, *(pData + i));
-        HAL_Delay(5);  // Ensure write cycle completes
-    }
-}
-
-int at24c_ReadInt(uint16_t ReadAddr)
-{
-    int data;
-    uint8_t *pData = (uint8_t*)&data;
-    for (uint8_t i = 0; i < sizeof(int); i++)
-    {
-        *(pData + i) = at24c_ReadOneByte(ReadAddr + i);
-    }
-    return data;
-}
-
-void at24c_WriteString(uint16_t WriteAddr, const char *str)
-{
-    while (*str)
-    {
-        at24c_WriteOneByte(WriteAddr++, *str++);
-        HAL_Delay(5);  // Ensure write cycle completes
-    }
-    at24c_WriteOneByte(WriteAddr, '\0');  // Write null terminator
-    HAL_Delay(5);
-}
-
-void at24c_ReadString(uint16_t ReadAddr, char *buffer, uint16_t maxLength)
-{
-    uint16_t i = 0;
-    do
-    {
-        buffer[i] = at24c_ReadOneByte(ReadAddr + i);
-    } while (buffer[i++] != '\0' && i < maxLength);
-
-    buffer[maxLength - 1] = '\0';  // Ensure null termination
 }
 
 uint8_t at24c_ReadOneByte(uint16_t ReadAddr)
@@ -120,7 +53,7 @@ void at24c_WriteOneByte(uint16_t WriteAddr, uint8_t DataToWrite)
 	{
 		lcd_ShowStr(10, 120, "Write Error", WHITE, BLACK, 16, 1);
 	}
-    HAL_Delay(50);
+    HAL_Delay(5);
 }
 
 void at24c_Read(uint16_t ReadAddr, uint8_t *pBuffer, uint16_t NumToRead)
