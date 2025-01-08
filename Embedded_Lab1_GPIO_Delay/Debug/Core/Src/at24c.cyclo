@@ -5,3 +5,9 @@
 ../Core/Src/at24c.c:62:5:at24c_ReadInt	2
 ../Core/Src/at24c.c:73:6:at24c_WriteString	2
 ../Core/Src/at24c.c:84:6:at24c_ReadString	3
+../Core/Src/at24c.c:95:9:at24c_ReadOneByte	1
+../Core/Src/at24c.c:102:6:at24c_WriteOneByte	1
+../Core/Src/at24c.c:108:6:at24c_Read	2
+../Core/Src/at24c.c:117:6:at24c_Write	2
+../Core/Src/at24c.c:127:6:at24c_init	1
+../Core/Src/at24c.c:132:9:at24c_Check	3

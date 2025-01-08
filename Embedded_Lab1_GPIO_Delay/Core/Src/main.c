@@ -38,6 +38,7 @@
 #include "ds3231.h"
 #include "sensor.h"
 #include "buzzer.h"
+#include "at24c.h"
 //#include "touch.h"
 /* USER CODE END Includes */
 
